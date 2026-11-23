@@ -1,0 +1,31 @@
+# AGENTS.md — Project Guidelines
+
+## 1. Project Overview
+- **Goal:** Build a reliable, well-structured, end-to-end application.
+- **Primary Stack:** Python 3.11+ (backend/AI logic) with optional modern web/JS frontend.
+- **Environments:** Cross-platform team working across **macOS, Windows, and Linux** in **VS Code** and **IBM Bob**.
+
+## 2. Core Coding Standards (Python)
+- **Type Hints & Clarity:** Use Python type annotations (`list[str]`, `dict[str, Any]`) on all function signatures.
+- **Modular Architecture:** Maintain clean separation of concerns between core business/AI logic, data models, API routes, and UI components.
+- **Graceful Error Handling:** Wrap external API calls (LLM endpoints, IBM services, third-party APIs) in `try/except` blocks with clear, actionable error handling—never expose raw stack traces.
+- **Concise Docstrings:** Add clear one-line docstrings to public functions and modules.
+
+## 3. Cross-Platform Rules (macOS, Windows, Linux)
+- **File Paths:** ALWAYS use `pathlib.Path` instead of hardcoded `/` or `\` strings.
+- **Encoding:** Always specify `encoding="utf-8"` when reading or writing files (`open(..., encoding="utf-8")`).
+- **Shell Commands:** Provide cross-platform commands or explicitly label OS-specific ones (`source .venv/bin/activate` on macOS/Linux vs. `.venv\Scripts\activate` on Windows).
+
+## 4. Security & Secrets Hygiene
+- **Never Hardcode Secrets:** Never write API keys, tokens, or passwords in code. Load all credentials via `os.getenv()` or `python-dotenv` from `.env`.
+- **Ignore Sensitive Files:** Do not read, print, or commit `.env`, `credentials.json`, or `.bob/mcp.json`.
+
+## 5. Dependency & UI Standards
+- **Track Dependencies:** Whenever you install or import a new Python package, immediately record it in `requirements.txt` (or `pyproject.toml`).
+- **Clean, Responsive UI:** Keep any frontend interface well-structured, responsive, and intuitive across screen sizes.
+
+## 6. Agent Behavior & Verification (Use `verify` Skill)
+- **Outline First:** Briefly list the files you plan to create or modify before making multi-file edits.
+- **Preserve Working Code:** Do not delete or rewrite unrelated working features when fixing a bug.
+- **Run Verification Checks:** Use the `verify` skill after code changes to confirm files compile, import cleanly, and pass functional checks before finishing.
+- **Document Gotchas Here:** Record any non-obvious framework behaviors or environment constraints discovered during development below so they are never repeated.

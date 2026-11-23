@@ -1,0 +1,163 @@
+# ==========================================
+# SECRETS & ENVIRONMENT VARIABLES
+# ==========================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials.json
+*service-account*.json
+.aws/
+.azure/
+
+# ==========================================
+# IBM BOB & AI AGENT CONFIGS
+# ==========================================
+# Local session checkpoint file
+PROGRESS.md
+# Ignore MCP configs that may contain tokens/keys
+.bob/mcp.json
+.bob/cache/
+.bob/logs/
+.bob/*.log
+# Keep shared team modes/rules (like .bob/custom_modes.yaml and AGENTS.md) tracked
+
+# ==========================================
+# PYTHON (Core, Virtualenvs, Jupyter, Testing)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments & Package Managers
+.venv/
+venv/
+ENV/
+env/
+.conda/
+.python-version
+__pypackages__/
+.uv/
+uv.lock.tmp
+
+# Packaging & Distribution
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing, Linting & Type Checking
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.hypothesis/
+
+# Jupyter & Data Science Artifacts
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+*.sqlite3
+*.db
+
+# ==========================================
+# WEB / JS / OTHER HACKATHON FRAMEWORKS
+# ==========================================
+node_modules/
+.pnp
+.pnp.js
+.next/
+out/
+.nuxt/
+.svelte-kit/
+.vite/
+.turbo/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# ==========================================
+# VS CODE & EDITORS
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# OPERATING SYSTEMS (macOS, Windows, Linux)
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==========================================
+# LOGS, TEMP & ARCHIVES
+# ==========================================
+logs/
+*.log
+tmp/
+temp/
+.cache/
+*.tmp
+*.bak
+*.zip
+*.tar.gz

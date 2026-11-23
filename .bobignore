@@ -1,0 +1,22 @@
+# Block IBM Bob from reading/modifying secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+.bob/mcp.json
+
+# Prevent Bob from scanning heavy folders or binary artifacts
+.venv/
+venv/
+__pycache__/
+node_modules/
+.next/
+dist/
+build/
+.git/
+*.sqlite3
+*.db
+*.log
