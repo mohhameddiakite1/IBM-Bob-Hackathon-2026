@@ -1,0 +1,19 @@
+[
+  {
+    "title": "Active Directory replication traffic between two servers",
+    "source": "Vectra",
+    "host": "DC01",
+    "account": "system",
+    "description": "Unusual volume of replication traffic detected between DC01 and DC02.",
+    "expected_top1": "SOC-1041",
+    "expected_top3_contains": ["SOC-1041"]
+  },
+  {
+    "title": "Successful sign-in from a new country",
+    "source": "Microsoft Sentinel",
+    "host": "VPN-GW01",
+    "account": "p.lachance",
+    "description": "User signed in from a country never seen before for this account. MFA completed. No travel notice available.",
+    "expected_top3_contains": ["SOC-1057", "SOC-1063"]
+  }
+]
