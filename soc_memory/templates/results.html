@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Analysis Results{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <!-- Back link -->
+    <a href="{{ url_for('soc_memory.index') }}" class="btn btn-sm btn-outline-secondary mb-3">&larr; New Analysis</a>
+
+    <!-- Duplicate-flag banner -->
+    {% if result.duplicate_candidates %}
+    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+      <strong class="me-2">&#9888; Potential Duplicate Detected</strong>
+      This incident closely matches {{ result.duplicate_candidates | length }} existing record(s) with cosine score &ge; 0.92.
+    </div>
+    {% endif %}
+
+    <!-- Query incident summary card -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Query Incident</div>
+      <div class="card-body">
+        <h5 class="mb-1">{{ query.title }}</h5>
+        <p class="text-muted mb-2">{{ query.description[:300] }}{% if query.description | length > 300 %}&hellip;{% endif %}</p>
+        <div class="mb-2">
+          <span class="badge severity-{{ query.severity }} me-1">{{ query.severity }}</span>
+          <span class="badge status-{{ query.status }}">{{ query.status }}</span>
+        </div>
+        {% if query.iocs %}
+        <div>
+          {% for ioc in query.iocs %}
+          <span class="badge bg-light text-dark border ioc-pill me-1 mb-1">{{ ioc.type }}: {{ ioc.value }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Similarity matches table -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">
+        Similarity Matches
+        <span class="badge bg-secondary ms-2">{{ result.match_summary | length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if result.match_summary %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Incident</th>
+                <th>Severity</th>
+                <th>Score</th>
+                <th>IOC Overlap</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in result.match_summary %}
+              <tr {% if m.score >= 0.92 %}class="table-danger"{% endif %}>
+                <td class="text-muted">{{ loop.index }}</td>
+                <td>
+                  <a href="{{ url_for('soc_memory.incident_detail', incident_id=m.incident_id) }}" class="text-decoration-none">
+                    {{ m.title }}
+                  </a>
+                  {% if m.score >= 0.92 %}
+                  <span class="badge bg-danger ms-1" title="Duplicate candidate">dup</span>
+                  {% endif %}
+                </td>
+                <td><span class="badge severity-{{ m.severity }}">{{ m.severity }}</span></td>
+                <td>
+                  <span class="fw-semibold">{{ "%.3f"|format(m.score) }}</span>
+                  <div class="score-bar bg-primary mt-1" style="width: {{ (m.score * 100)|int }}%;"></div>
+                </td>
+                <td>
+                  {% if m.ioc_overlap_count > 0 %}
+                  <span class="badge bg-warning text-dark">{{ m.ioc_overlap_count }} shared</span>
+                  {% else %}
+                  <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('soc_memory.incident_detail', incident_id=m.incident_id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted m-3">No similar incidents found.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Shared IOCs -->
+    {% if result.shared_iocs %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Shared IOCs</div>
+      <div class="card-body">
+        {% for ioc in result.shared_iocs %}
+        <span class="badge bg-danger text-white ioc-pill me-1 mb-1">{{ ioc.type }}: {{ ioc.value }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Top resolution notes -->
+    {% if result.top_resolutions %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-white fw-semibold">Top Resolution Notes from Similar Incidents</div>
+      <div class="card-body">
+        {% for note in result.top_resolutions %}
+        <div class="border-start border-3 border-success ps-3 mb-3">
+          <p class="mb-0 text-muted" style="white-space: pre-wrap;">{{ note }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

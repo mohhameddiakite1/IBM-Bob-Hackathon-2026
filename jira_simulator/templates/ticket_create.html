@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}New Ticket{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('ui.ticket_list') }}">All Tickets</a></li>
+    <li class="breadcrumb-item active">New Ticket</li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm" style="max-width: 720px;">
+  <div class="card-header bg-white py-3">
+    <h4 class="mb-0">Create New Ticket</h4>
+  </div>
+  <div class="card-body">
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('ui.ticket_create') }}" novalidate>
+
+      <div class="mb-3">
+        <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          class="form-control"
+          placeholder="Short summary of the incident"
+          value="{{ form.get('title', '') }}"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+        <textarea
+          id="description"
+          name="description"
+          class="form-control"
+          rows="6"
+          placeholder="Detailed description: affected systems, observed behaviour, timeline…"
+          required
+        >{{ form.get('description', '') }}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label for="severity" class="form-label fw-semibold">Severity</label>
+        <select id="severity" name="severity" class="form-select" style="max-width: 200px;">
+          {% for level in ['critical', 'high', 'medium', 'low'] %}
+            <option value="{{ level }}" {% if form.get('severity', 'medium') == level %}selected{% endif %}>
+              {{ level | upper }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="iocs" class="form-label fw-semibold">IOCs</label>
+        <input
+          type="text"
+          id="iocs"
+          name="iocs"
+          class="form-control"
+          placeholder="Comma-separated: 198.51.100.1, evil.example.com, abc123hash…"
+          value="{{ form.get('iocs', '') }}"
+        />
+        <div class="form-text">Separate multiple indicators with commas.</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="tags" class="form-label fw-semibold">Tags</label>
+        <input
+          type="text"
+          id="tags"
+          name="tags"
+          class="form-control"
+          placeholder="Comma-separated: phishing, ransomware, lateral-movement…"
+          value="{{ form.get('tags', '') }}"
+        />
+        <div class="form-text">Separate multiple tags with commas.</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Create Ticket</button>
+        <a href="{{ url_for('ui.ticket_list') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
