@@ -1,209 +1,200 @@
 # SOC Memory
 
-> **Intelligent historical-incident retrieval and investigation assistant for Security Operations Centre (SOC) analysts.**
+> An intelligent historical incident retrieval and investigation assistant for Security Operations Center (SOC) analysts.
 
-SOC Memory lets an analyst paste a free-text incident description (or load a live ticket straight from the built-in Jira Simulator) and instantly surfaces the most similar historical cases — with shared IOCs, top resolution playbooks, and near-duplicate flags.
+SOC Memory lets a SOC analyst paste free text or select a live ticket from a Jira-like queue and instantly surface the top historically similar incidents, shared indicators of compromise (IOCs), deduplicated resolution playbooks, and near-duplicate alert flags — all without an LLM or internet connection.
+
+---
+
+## Key Features
+
+- **Pull-based ticket ingestion** — analyst selects a live ticket from the Jira Simulator (`GET /api/tickets`) or pastes free text; no polling workers or background queues.
+- **Hybrid similarity engine** — `all-MiniLM-L6-v2` sentence embeddings (384-dimensional) with NumPy cosine similarity; FAISS optional.
+- **Regex IOC extraction** — automatically extracts IPv4, domain, URL, MD5, SHA-1, SHA-256 from incident text with overlap suppression.
+- **Deterministic synthesis layer** — aggregates shared IOCs, deduplicates top-3 resolution playbooks, flags near-duplicate alerts (cosine ≥ 0.92). Zero LLM hallucination risk; pluggable `Summarizer` protocol ready for IBM watsonx.ai.
+- **50-incident curated seed dataset** — 8 SOC archetypes (phishing, ransomware, C2 beaconing, lateral movement, data exfiltration, privilege escalation, web exploit, insider threat); 21 shared IOCs.
+- **Standalone Jira Simulator** — independent Flask + SQLite ticketing app with full CRUD UI and REST API (port 5001). SOC Memory communicates strictly via HTTP — the connector is swappable for real Jira Cloud.
+- **Offline-first** — works entirely without external API keys; enrichment boundary is clean for future abuse.ch/URLhaus integration.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Analyst Browser                         │
-└────────────────────┬─────────────────────┬──────────────────────┘
-                     │  HTTP :5000          │  HTTP :5001
-          ┌──────────▼──────────┐  ┌────────▼────────────┐
-          │   SOC Memory App    │  │  Jira Simulator App  │
-          │  (soc_memory/)      │  │  (jira_simulator/)   │
-          │                     │  │                      │
-          │  Flask + Jinja2     │  │  Flask + SQLite      │
-          │  NumPy cosine index │  │  Full CRUD UI + REST │
-          │  sentence-xformers  │  │  /api/tickets/       │
-          └──────────┬──────────┘  └────────────────────--┘
-                     │  REST API only (no direct DB / import)
-                     └──────────────────────────────────────▶ /api/tickets/
+┌───────────────────────────┐         HTTP REST only         ┌──────────────────────────┐
+│      SOC Memory           │ ─────────────────────────────► │    Jira Simulator        │
+│  Flask  :5000             │   GET /api/tickets             │  Flask + SQLite  :5001   │
+│                           │   GET /api/tickets/<id>        │                          │
+│  embedder.py              │                                │  REST API (routes_api)   │
+│  ioc_extractor.py         │                                │  Web UI  (routes_ui)     │
+│  index_manager.py         │                                │  Ticket CRUD             │
+│  synthesizer.py           │                                └──────────────────────────┘
+│  connector.py             │
+│  routes.py                │
+└───────────────────────────┘
+         │  loads on startup
+         ▼
+   index/ (vectors.npy + metadata.json)
+   ← built by seed.py from data/seed_incidents.json
 ```
 
-```mermaid
-flowchart LR
-    A[Analyst Browser] -->|HTTP :5000| B(SOC Memory\nsoc_memory/)
-    A -->|HTTP :5001| C(Jira Simulator\njira_simulator/)
-    B -- REST /api/tickets/ --> C
-    B -->|reads| D[(index/\nvectors.npy\nmetadata.json)]
-    C -->|reads/writes| E[(jira_simulator/\ntickets.db)]
-```
-
-The two services are **strictly decoupled**: `soc_memory` communicates with `jira_simulator` only through its REST API — never by importing its modules or reading its database.
+**Tech stack:** Python 3.11+, Flask 3, Flask-SQLAlchemy 3, SQLAlchemy 2, Pydantic v2, sentence-transformers 3, NumPy, Requests, python-dotenv.
 
 ---
 
-## Features
+## Prerequisites
 
-| Feature | Detail |
-|---|---|
-| **Free-text analysis** | Paste any incident text; IOCs are auto-extracted and embedded |
-| **Load from Jira** | Pick a live ticket from the Jira Simulator UI |
-| **Similarity search** | `all-MiniLM-L6-v2` + NumPy cosine similarity; top-10 historical matches |
-| **Shared-IOC highlighting** | Lists IOCs that appear in both the query and matched incidents |
-| **Top resolutions** | Surfaces up to 3 resolution playbooks from the closest matches |
-| **Duplicate detection** | Flags tickets with cosine score ≥ 0.92 |
-| **Jira Simulator** | Standalone ticketing app: create / view / resolve tickets, severity badges, IOC pills |
-| **Seed dataset** | 50 curated synthetic incidents, 8 attack archetypes, RFC-5737 safe IPs |
-
----
-
-## Project Layout
-
-```
-IBM-Bob-Hackathon-2026/
-├── soc_memory/              # Main application (port 5000)
-│   ├── app.py               # Flask app factory (create_app)
-│   ├── routes.py            # GET /health, GET /, POST /analyze, GET /incidents/<id>
-│   ├── models.py            # Pydantic v2: Incident, IOC, Severity, Status
-│   ├── ioc_extractor.py     # Regex-based IOC extraction (IPv4, domain, URL, hash)
-│   ├── embedder.py          # sentence-transformers wrapper (all-MiniLM-L6-v2)
-│   ├── index_manager.py     # NumPy vector index: build / save / load / search
-│   ├── synthesizer.py       # Deterministic synthesis: shared IOCs, resolutions, duplicates
-│   ├── connector.py         # JiraSimulatorConnector — REST API client
-│   └── templates/           # Jinja2 templates (Bootstrap 5)
-│       ├── base.html
-│       ├── index.html
-│       ├── results.html
-│       ├── incident_detail.html
-│       └── 404.html
-├── jira_simulator/          # Standalone ticketing app (port 5001)
-│   ├── app.py               # Flask app factory
-│   ├── models.py            # SQLAlchemy Ticket model
-│   ├── routes.py            # UI routes + /api/tickets/ REST endpoints
-│   └── templates/           # Jinja2 templates (Bootstrap 5)
-│       ├── base.html
-│       ├── tickets.html
-│       ├── ticket_detail.html
-│       ├── ticket_create.html
-│       └── 404.html
-├── data/
-│   └── seed_incidents.json  # 50 synthetic incidents (8 archetypes)
-├── index/                   # Auto-generated by seed.py
-│   ├── vectors.npy          # (50, 384) float32 embedding matrix
-│   └── metadata.json        # Incident metadata parallel to vectors
-├── tests/
-│   ├── test_synthesizer.py  # 8 unit tests for DeterministicSummarizer
-│   ├── test_connector.py    # 12 unit tests for JiraSimulatorConnector (mocked HTTP)
-│   └── test_routes.py       # 15 Flask test-client tests for SOC Memory routes
-├── seed.py                  # Builds index/ from data/seed_incidents.json
-├── run_jira.py              # Start Jira Simulator on port 5001
-├── run_soc.py               # Start SOC Memory on port 5000
-├── requirements.txt
-├── .env.example
-└── AGENTS.md                # Project rules & known gotchas
-```
-
----
-
-## Quickstart
-
-### 1 · Prerequisites
-
-- Python 3.11+
-- Recommended: Conda environment (`bobpyenv`) or any virtualenv
-
-### 2 · Install dependencies
+- Python 3.11+ (Conda environment `bobpyenv` recommended)
+- All packages in `requirements.txt`
 
 ```bash
-pip install -r requirements.txt
+# macOS / Linux
+python -m pip install -r requirements.txt
+
+# Windows (Conda bobpyenv)
+C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe -m pip install -r requirements.txt
 ```
 
-> **First-run note:** `sentence-transformers` will download the `all-MiniLM-L6-v2` model (~80 MB) on the very first call to `seed.py` or `run_soc.py`. Subsequent starts are instant.
+> **Note:** `sentence-transformers` downloads ~80 MB (`all-MiniLM-L6-v2`) on first use. `faiss-cpu` is optional; the app falls back to NumPy cosine similarity automatically.
 
-### 3 · Configure environment (optional)
+---
+
+## Quick Start
+
+### 1. Configure environment
 
 ```bash
 cp .env.example .env
-# Edit .env to set SOC_MEMORY_SECRET_KEY, JIRA_BASE_URL, etc.
+# Edit .env if you want non-default ports
 ```
 
-### 4 · Build the vector index
-
-```bash
-python seed.py
-```
-
-This reads `data/seed_incidents.json`, embeds all 50 incidents, and writes `index/vectors.npy` + `index/metadata.json`.
-
-### 5 · Start both servers
-
-Open **two terminals**:
-
-**Terminal 1 — Jira Simulator (port 5001)**
-
-```bash
-python run_jira.py
-```
-
-**Terminal 2 — SOC Memory (port 5000)**
-
-```bash
-python run_soc.py
-```
-
-### 6 · Use the analyst UI
-
-| URL | Purpose |
-|-----|---------|
-| `http://localhost:5000/` | SOC Memory analyst home |
-| `http://localhost:5000/health` | Health check + index size |
-| `http://localhost:5001/` | Jira Simulator ticket board |
-| `http://localhost:5001/api/tickets/` | JSON REST endpoint |
-
-**Typical workflow:**
-
-1. Open the Jira Simulator (`http://localhost:5001`) and create a new ticket describing a security incident.
-2. In SOC Memory (`http://localhost:5000`), either:
-   - paste the incident text directly into the **Free-text analysis** box, or
-   - select the ticket from the **Load from Jira** dropdown and click **Analyse**.
-3. The results page shows the top-10 historical matches, shared IOCs, recommended resolutions, and any near-duplicate flags.
-
----
-
-## Running the Test Suite
-
-```bash
-python -m pytest tests/ -v
-```
-
-Expected: **35 tests pass** (`test_synthesizer.py` × 8, `test_connector.py` × 12, `test_routes.py` × 15).
-
-> `test_synthesizer.py` requires `index/` to exist (run `seed.py` first). The route and connector tests are fully mocked and run offline.
-
----
-
-## Configuration Reference (`.env`)
+Key variables (all have defaults — `.env` is optional for local dev):
 
 | Variable | Default | Purpose |
 |---|---|---|
+| `JIRA_SIMULATOR_URL` | `http://localhost:5001` | Base URL SOC Memory uses to call Jira Simulator |
+| `JIRA_SIMULATOR_PORT` | `5001` | Port Jira Simulator listens on |
+| `SOC_MEMORY_PORT` | `5000` | Port SOC Memory listens on |
+| `JIRA_SECRET_KEY` | `jira-simulator-dev-secret` | Flask session secret |
 | `SOC_MEMORY_SECRET_KEY` | `soc-memory-dev-secret` | Flask session secret |
-| `JIRA_BASE_URL` | `http://localhost:5001` | Jira Simulator base URL |
-| `JIRA_API_TOKEN` | *(none)* | Optional bearer token for the REST API |
+
+### 2. Build the vector index (one-time)
+
+```bash
+# macOS / Linux
+python seed.py
+
+# Windows (Conda bobpyenv)
+C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe seed.py
+```
+
+This validates all 50 seed incidents, runs IOC extraction, and persists `index/vectors.npy` + `index/metadata.json` (shape `(50, 384)`).
+
+### 3. Start the Jira Simulator
+
+```bash
+# macOS / Linux
+python run_jira.py
+
+# Windows
+C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe run_jira.py
+```
+
+Open [http://localhost:5001](http://localhost:5001) — 5 sample tickets are auto-seeded on first run.
+
+### 4. Start SOC Memory
+
+```bash
+# macOS / Linux
+python run_soc.py
+
+# Windows
+C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe run_soc.py
+```
+
+Open [http://localhost:5000](http://localhost:5000).
+
+> If `index/` is missing, SOC Memory auto-builds it from `data/seed_incidents.json` on startup.
 
 ---
 
-## Stack
+## Usage
 
-| Layer | Technology |
-|---|---|
-| Web framework | Flask 3.x + Jinja2 |
-| Data validation | Pydantic v2 |
-| Embedding model | `all-MiniLM-L6-v2` via `sentence-transformers` |
-| Vector index | NumPy cosine similarity (FAISS optional) |
-| Ticket database | SQLite via Flask-SQLAlchemy |
-| Testing | pytest |
+1. **Select a Jira ticket** from the live dropdown on the home page, or **paste free text** directly.
+2. Click **Analyse**.
+3. The results page shows:
+   - **Top 10 historically similar incidents** with cosine similarity scores.
+   - **Shared IOCs** (indicators appearing in both the query and matched historical incidents).
+   - **Top 3 resolution playbooks** (deduplicated, ranked by similarity score).
+   - **Near-duplicate alerts** (cosine ≥ 0.92) flagged to prevent duplicate triage effort.
+4. Click any matched incident ID to view its full historical record.
 
 ---
 
-## Known Limitations / Gotchas
+## Project Structure
 
-- **Windows Conda interpreter:** Always invoke `C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe` directly in scripts; bare `python` may not resolve in non-activated sub-shells.
-- **FAISS on Windows:** The `faiss-cpu` wheel is not pre-installed. The index manager falls back to NumPy automatically — no action needed unless you need FAISS performance.
-- **Model download on first run:** `all-MiniLM-L6-v2` (~80 MB) is fetched from HuggingFace Hub on the first `seed.py` execution. Ensure internet access for the initial setup.
-- **Static index:** The vector index is built once by `seed.py`. Re-run `seed.py` after adding new incidents to `data/seed_incidents.json`.
+```
+IBM-Bob-Hackathon-2026/
+├── soc_memory/              # Main analyst application (port 5000)
+│   ├── app.py               # Flask factory, index startup, blueprint registration
+│   ├── routes.py            # GET /, POST /analyze, GET /incidents/<id>, GET /health
+│   ├── models.py            # Pydantic: IOC, Incident, Severity, Status, IOCType
+│   ├── ioc_extractor.py     # Regex IOC extraction (IPv4, domain, URL, MD5/SHA1/SHA256)
+│   ├── embedder.py          # all-MiniLM-L6-v2 lazy singleton wrapper
+│   ├── index_manager.py     # NumPy cosine similarity index (build/save/load/search)
+│   ├── synthesizer.py       # DeterministicSummarizer + Summarizer Protocol
+│   ├── connector.py         # JiraSimulatorConnector (HTTP-only Jira client)
+│   └── templates/           # Jinja2 + Bootstrap 5 UI (index, results, incident_detail)
+├── jira_simulator/          # Standalone ticketing app (port 5001)
+│   ├── app.py               # Flask factory, SQLAlchemy init, auto-seed
+│   ├── models.py            # SQLAlchemy Ticket model
+│   ├── routes_api.py        # REST: GET/POST /api/tickets, GET/PATCH /api/tickets/<id>
+│   ├── routes_ui.py         # HTML CRUD: ticket list, detail, create, resolve
+│   └── templates/           # Jinja2 + Bootstrap 5 UI (tickets, ticket_detail, create)
+├── tests/
+│   ├── test_connector.py    # 12 tests — JiraSimulatorConnector (mocked HTTP)
+│   ├── test_synthesizer.py  # 8 tests — DeterministicSummarizer
+│   └── test_routes.py       # 15 tests — SOC Memory Flask routes
+├── data/seed_incidents.json # 50 curated incidents, 8 archetypes, 21 shared IOCs
+├── index/                   # Persisted vector index (vectors.npy + metadata.json)
+├── seed.py                  # CLI: build & persist the vector index
+├── run_jira.py              # Entry point: start Jira Simulator
+├── run_soc.py               # Entry point: start SOC Memory
+├── requirements.txt         # All Python dependencies (clean, cross-platform)
+├── .env.example             # Environment variable template
+└── AGENTS.md                # Project rules enforced by IBM Bob
+```
+
+---
+
+## Running Tests
+
+```bash
+# macOS / Linux
+python -m pytest tests/ -v
+
+# Windows (Conda bobpyenv)
+C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe -m pytest tests/ -v
+```
+
+**Result: 35/35 passed** (12 connector + 15 routes + 8 synthesizer).
+
+---
+
+## Known Gotchas
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | **Windows Conda interpreter** — `execute_command` runs in a non-activated subshell; bare `python` fails with `ModuleNotFoundError`. | Always use `C:\ProgramData\Anaconda3\envs\bobpyenv\python.exe` directly. |
+| 2 | **`faiss-cpu` Windows wheel** — no pre-built wheel available for all Python 3.11 builds. | `index_manager.py` uses pure NumPy cosine similarity; FAISS is not required. |
+| 3 | **Model download on first run** — `all-MiniLM-L6-v2` (~80 MB) is downloaded by HuggingFace Hub. | Subsequent runs use the cached model. Run `seed.py` once before demos. |
+
+---
+
+## Roadmap
+
+- **watsonx.ai LLM synthesizer** — implement `WatsonxSummarizer` satisfying the `Summarizer` protocol; swap in via `USE_WATSONX=1` env flag.
+- **Live threat-intel enrichment** — abuse.ch/URLhaus API integration on IOC ingestion.
+- **Real Jira Cloud connector** — replace `JiraSimulatorConnector` with an OAuth-authenticated Jira Cloud client using the same interface.
+- **Live index updates** — `POST /api/ingest` to append new incidents to the in-memory index without a full rebuild.
+- **Pagination** — `?page=` / `?per_page=` on ticket list endpoints.
