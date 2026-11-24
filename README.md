@@ -1,3 +1,6 @@
+
+# Video Link
+https://drive.google.com/file/d/1xVJ-eveIF9GjBNtSBcPeBDYEc-S3nG13/view?usp=sharing
 # SOC Memory
 
 > An intelligent historical incident retrieval and investigation assistant for Security Operations Center (SOC) analysts.
