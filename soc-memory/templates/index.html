@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOC Memory</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="site-title">SOC Memory</h1>
+      <p class="site-subtitle">Find similar past cases · Draft a closing note</p>
+      <p class="site-tagline">The memory proposes, the human decides.</p>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ── Alert Input Form ─────────────────────────────────────── -->
+    <section class="card form-card" aria-label="Alert input">
+      <h2 class="section-heading">New Alert</h2>
+
+      <div class="demo-buttons" role="group" aria-label="Load demo alerts">
+        <a href="{{ url_for('main.demo_alert', idx=1) }}" class="btn btn-demo">Load demo alert 1</a>
+        <a href="{{ url_for('main.demo_alert', idx=2) }}" class="btn btn-demo">Load demo alert 2</a>
+      </div>
+
+      {% if error %}
+      <div class="alert-error" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('main.search') }}" novalidate>
+        <div class="form-row">
+          <label for="title" class="form-label">Title</label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            class="form-input"
+            value="{{ form.get('title', '') }}"
+            placeholder="e.g. Unusual AD replication traffic"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="source" class="form-label">Source</label>
+          <select id="source" name="source" class="form-input form-select">
+            <option value="">— select source —</option>
+            {% for s in sources %}
+            <option value="{{ s }}"
+              {% if form.get('source', '') == s %}selected{% endif %}>
+              {{ s }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-row two-col">
+          <div>
+            <label for="host" class="form-label">Host</label>
+            <input
+              id="host"
+              name="host"
+              type="text"
+              class="form-input"
+              value="{{ form.get('host', '') }}"
+              placeholder="e.g. DC01"
+              autocomplete="off"
+            >
+          </div>
+          <div>
+            <label for="account" class="form-label">Account</label>
+            <input
+              id="account"
+              name="account"
+              type="text"
+              class="form-input"
+              value="{{ form.get('account', '') }}"
+              placeholder="e.g. system"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="description" class="form-label">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-input form-textarea"
+            rows="4"
+            placeholder="Paste the alert description here…"
+          >{{ form.get('description', '') }}</textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Search Precedents</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ── Results Section ──────────────────────────────────────── -->
+    {% if results %}
+
+    <!-- ── Notices Strip ────────────────────────────────────────── -->
+    {% if notices %}
+    <section class="notices-strip" aria-label="Active notices about these entities">
+      <h2 class="notices-heading">Notices about these entities</h2>
+      <ul class="notices-list">
+        {% for n in notices %}
+        <li class="notice-item">
+          <div class="notice-meta">
+            <span class="notice-source">{{ n.source }}</span>
+            <span class="notice-sep">·</span>
+            <span class="notice-author">{{ n.author }}</span>
+            <span class="notice-sep">·</span>
+            <span class="notice-date">{{ n.date }}</span>
+            {% if n.expires %}
+            <span class="notice-sep">·</span>
+            <span class="notice-expires">Valid until {{ n.expires }}</span>
+            {% endif %}
+          </div>
+          <p class="notice-text">{{ n.text }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section aria-label="Matching precedents">
+      <h2 class="section-heading">Top {{ results|length }} Precedents</h2>
+
+      <div class="precedents-grid">
+        {% for case in results %}
+        <article class="card precedent-card" aria-label="Precedent {{ case.id }}">
+
+          <div class="precedent-header">
+            <span class="case-id">{{ case.id }}</span>
+            <span class="verdict-badge verdict-{{ case.verdict | lower }}">
+              {{ case.verdict }}
+            </span>
+            <span class="score-badge">
+              <span class="score-pct">{{ "%.0f"|format(case.score * 100) }}%</span>
+              <span class="score-bar-track"><span class="score-bar-fill" style="width:{{ "%.0f"|format(case.score * 100) }}%"></span></span>
+            </span>
+          </div>
+
+          <h3 class="precedent-title">{{ case.title }}</h3>
+
+          <dl class="precedent-meta">
+            <dt>Source</dt><dd>{{ case.source }}</dd>
+            <dt>Host</dt><dd>{{ case.host }}</dd>
+            <dt>Account</dt><dd>{{ case.account }}</dd>
+            {% if case.analyst or case.date %}
+            <dt>Handled by</dt>
+            <dd>
+              {% if case.analyst %}{{ case.analyst }}{% endif %}
+              {% if case.analyst and case.date %} · {% endif %}
+              {% if case.date %}{{ case.date }}{% endif %}
+            </dd>
+            {% endif %}
+            <dt>Client confirmed</dt>
+            <dd>
+              {% if case.client_confirmed %}
+              <span class="confirmed yes">Yes ✓</span>
+              {% else %}
+              <span class="confirmed no">No</span>
+              {% endif %}
+            </dd>
+          </dl>
+
+          <div class="precedent-section">
+            <strong class="field-label">Justification</strong>
+            <p class="field-value">{{ case.justification }}</p>
+          </div>
+
+          <div class="precedent-section">
+            <strong class="field-label">Original note</strong>
+            <p class="field-value note-text">{{ case.note }}</p>
+          </div>
+
+          {% if case.team_notes %}
+          <div class="precedent-section">
+            <strong class="field-label">What the team said</strong>
+            <blockquote class="team-notes-quote">{{ case.team_notes }}</blockquote>
+          </div>
+          {% endif %}
+
+          {% if case.match_reasons %}
+          <details class="why-section">
+            <summary class="why-summary">Why this case</summary>
+            <ul class="why-list">
+              {% for reason in case.match_reasons %}
+              <li>{{ reason }}</li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endif %}
+
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- ── Draft Note Panel ─────────────────────────────────────── -->
+    {% if draft %}
+    <section class="card draft-card" aria-label="Draft note">
+      <div class="draft-header">
+        <h2 class="section-heading no-margin">Draft Note</h2>
+        <button
+          type="button"
+          class="btn btn-copy"
+          onclick="navigator.clipboard.writeText(document.getElementById('draft-text').value)"
+        >Copy</button>
+      </div>
+      <textarea
+        id="draft-text"
+        class="form-input draft-textarea"
+        rows="10"
+        spellcheck="true"
+      >{{ draft }}</textarea>
+
+      <!-- ── Memory Loop ───────────────────────────────────────── -->
+      <div class="memory-loop" id="memory-loop">
+        <h3 class="memory-loop-heading">Save to team memory</h3>
+        <div class="memory-loop-fields">
+          <div class="form-row">
+            <label for="analyst-name" class="form-label">Your name</label>
+            <input id="analyst-name" type="text" class="form-input" placeholder="e.g. S. Bergeron" autocomplete="off">
+          </div>
+          <div class="form-row">
+            <label for="verdict-select" class="form-label">Verdict</label>
+            <select id="verdict-select" class="form-input form-select">
+              <option value="CLOSE">CLOSE</option>
+              <option value="CREATE">CREATE</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="save-memory-btn">Save to team memory</button>
+        </div>
+        <p id="memory-confirmation" class="memory-confirmation" style="display:none"></p>
+      </div>
+    </section>
+    {% endif %}
+
+    {% endif %}
+
+  </main>
+
+  <footer class="site-footer">
+    <p>SOC Memory — no external APIs, no ML, runs entirely offline.</p>
+  </footer>
+
+  <script>
+  (function () {
+    var btn = document.getElementById('save-memory-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', function () {
+      var analyst = document.getElementById('analyst-name').value.trim();
+      var verdict = document.getElementById('verdict-select').value;
+      var note = document.getElementById('draft-text').value;
+
+      var payload = {
+        title: {{ form.get('title', '') | tojson }},
+        source: {{ form.get('source', '') | tojson }},
+        host: {{ form.get('host', '') | tojson }},
+        account: {{ form.get('account', '') | tojson }},
+        description: {{ form.get('description', '') | tojson }},
+        analyst: analyst,
+        verdict: verdict,
+        note: note
+      };
+
+      fetch('/remember', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var conf = document.getElementById('memory-confirmation');
+        conf.textContent = 'Saved to team memory as ' + data.saved_as + '.';
+        conf.style.display = 'block';
+        btn.disabled = true;
+      })
+      .catch(function () {
+        var conf = document.getElementById('memory-confirmation');
+        conf.textContent = 'Save failed — please try again.';
+        conf.style.display = 'block';
+      });
+    });
+  }());
+  </script>
+</body>
+</html>

@@ -5,12 +5,14 @@ from app.matcher import ScoredCase
 
 
 def draft_note(precedents: list[ScoredCase]) -> str:
-    """Draft a closing note or decision-required note from the top-3 precedents.
+    """Draft a paste-ready closing note or decision-required note from the top-3 precedents.
 
-    Rules (override plan defaults):
-    - If the top precedent is CLOSE → draft a short closing note citing its id.
-    - If the top 3 contain both CLOSE and CREATE verdicts → present both and
-      state that the analyst must decide, citing both ids (one of each).
+    Rules:
+    - If the top precedent is CLOSE → draft a paste-ready closing note built from
+      that precedent's own facts (host, account, what was confirmed, the note text),
+      still citing its case id.
+    - If the top 3 contain both CLOSE and CREATE verdicts → present both outcomes
+      and state that the analyst must decide, citing one id of each type.
     - Only cites case ids present in the displayed top 3.
     - No majority vote, no auto-escalate tie-break.
     """
@@ -37,14 +39,24 @@ def draft_note(precedents: list[ScoredCase]) -> str:
             "The analyst must review the context and decide whether to close or escalate."
         )
 
-    # Top precedent is CLOSE (and all top-3 are CLOSE, since no CREATE found above)
+    # Top precedent is CLOSE (and all top-3 are CLOSE, since no CREATE found above).
+    # Build a paste-ready closing note using the top precedent's own facts.
     client_line = (
-        "The client confirmed the activity."
+        "Client confirmed the activity."
         if top.client_confirmed
         else "Client confirmation was not obtained for this precedent."
     )
+
+    # Use the precedent's host/account to ground the note in its concrete facts
+    host_part = f"Host: {top.host}. " if top.host else ""
+    account_part = f"Account: {top.account}. " if top.account else ""
+
     return (
-        f"Based on precedent {top_id}, this alert matches a known benign pattern. "
-        f"{client_line} "
+        f"Recommended action: CLOSE (based on precedent {top_id})\n\n"
+        f"{host_part}{account_part}"
+        f"{client_line}\n\n"
+        f"Precedent {top_id} note: {top.note}\n\n"
+        f"This alert was reviewed against precedent {top_id}. "
+        f"The activity is consistent with previously approved behaviour. "
         f"Recommend closing without escalation."
     )

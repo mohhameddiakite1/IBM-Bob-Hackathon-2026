@@ -1,0 +1,72 @@
+[
+  {
+    "id": "N-01",
+    "entity": "DC01",
+    "entity_type": "host",
+    "source": "Client email",
+    "author": "Client ISS team",
+    "date": "2026-11-24",
+    "expires": "2026-11-27",
+    "text": "Client is running Active Directory schema updates and replication tests between DC01 and DC02 this week. Expect replication alerts from this pair; no escalation needed unless the source changes."
+  },
+  {
+    "id": "N-02",
+    "entity": "VPN-GW01",
+    "entity_type": "host",
+    "source": "Teams, SOC channel",
+    "author": "Shift lead",
+    "date": "2026-11-24",
+    "expires": "2026-11-25",
+    "text": "VPN gateway patching tonight from 22:00. Expect sign-in noise and failed attempts during the window."
+  },
+  {
+    "id": "N-03",
+    "entity": "WSUS-SCAN01",
+    "entity_type": "host",
+    "source": "Client email",
+    "author": "Client ISS team",
+    "date": "2026-11-18",
+    "expires": null,
+    "text": "Approved vulnerability scan and penetration test every Tuesday, 21:00 to 23:00, from WSUS-SCAN01. Scan findings outside that window are not the test."
+  },
+  {
+    "id": "N-04",
+    "entity": "185.220.101.47",
+    "entity_type": "ip",
+    "source": "Teams, on-call chat",
+    "author": "On-call analyst",
+    "date": "2026-11-12",
+    "expires": null,
+    "text": "This IP ran a password spray on Nov 12 and is blocked at the firewall. Any successful sign-in from it is a real incident."
+  },
+  {
+    "id": "N-05",
+    "entity": "a.tremblay",
+    "entity_type": "account",
+    "source": "Shift briefing",
+    "author": "Shift lead",
+    "date": "2026-11-21",
+    "expires": null,
+    "text": "This account stays disabled until the client confirms the device was wiped. Any activity on it is suspicious by default."
+  },
+  {
+    "id": "N-06",
+    "entity": "PRINT-SRV02",
+    "entity_type": "host",
+    "source": "Client email",
+    "author": "Client ISS team",
+    "date": "2026-11-10",
+    "expires": "2027-03-31",
+    "text": "Marketing's analytics tool is approved and paid until March 2027. Its beacons from PRINT-SRV02 are expected."
+  },
+  {
+    "id": "N-07",
+    "entity": "DC02",
+    "entity_type": "host",
+    "source": "Client email",
+    "author": "Client ISS team",
+    "date": "2026-11-15",
+    "expires": "2026-11-20",
+    "text": "Firewall maintenance on DC02 this week."
+  }
+]

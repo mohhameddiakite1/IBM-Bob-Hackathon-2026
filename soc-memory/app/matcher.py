@@ -1,8 +1,10 @@
 """Weighted token-overlap similarity engine for SOC Memory."""
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Weights — must sum to 1.0
@@ -25,6 +27,9 @@ _STOPWORDS: frozenset[str] = frozenset(
     }
 )
 
+_BASE_CASES_PATH = Path(__file__).parent / "data" / "cases.json"
+_ADDITIONS_PATH = Path(__file__).parent / "data" / "additions.json"
+
 
 # ---------------------------------------------------------------------------
 # Data model
@@ -43,6 +48,9 @@ class ScoredCase:
     client_confirmed: bool
     justification: str
     note: str
+    analyst: str = ""
+    date: str = ""
+    team_notes: str = ""
     score: float = 0.0
     match_reasons: list[str] = field(default_factory=list)
 
@@ -64,6 +72,17 @@ def jaccard(a: set[str], b: set[str]) -> float:
     if not union:
         return 0.0
     return len(a & b) / len(union)
+
+
+def load_all_cases() -> list[dict]:
+    """Load base cases.json plus additions.json (if it exists)."""
+    with open(_BASE_CASES_PATH, encoding="utf-8") as fh:
+        cases: list[dict] = json.load(fh)
+    if _ADDITIONS_PATH.exists():
+        with open(_ADDITIONS_PATH, encoding="utf-8") as fh:
+            additions: list[dict] = json.load(fh)
+        cases = cases + additions
+    return cases
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +115,9 @@ def score_case(alert: dict, case: dict) -> ScoredCase:
         client_confirmed=case.get("client_confirmed", False),
         justification=case["justification"],
         note=case["note"],
+        analyst=case.get("analyst", ""),
+        date=case.get("date", ""),
+        team_notes=case.get("team_notes", ""),
         score=round(total, 6),
         match_reasons=reasons,
     )

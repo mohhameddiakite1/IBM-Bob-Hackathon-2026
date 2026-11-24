@@ -9,7 +9,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "Both hosts are domain controllers of the same domain; replication is their normal function, and the volume matched a schema update window confirmed by the client. A tuning request was filed for this DC pair.",
-    "note": "Note: Replication traffic between the two domain controllers DC01 and DC02. The client confirmed a schema update at that time. Benign, closing."
+    "note": "Note: Replication traffic between the two domain controllers DC01 and DC02. The client confirmed a schema update at that time. Benign, closing.",
+    "analyst": "S. Bergeron",
+    "date": "2026-09-03",
+    "team_notes": "Teams, shift handover: Third spike this month, always during the schema update window. Tuning filed for the DC pair."
   },
   {
     "id": "SOC-1057",
@@ -21,7 +24,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "The user confirmed business travel to Germany. MFA passed and no other anomaly was found on the account.",
-    "note": "Note: Sign-in from Germany confirmed by the user as business travel, MFA completed. Nothing malicious, closing."
+    "note": "Note: Sign-in from Germany confirmed by the user as business travel, MFA completed. Nothing malicious, closing.",
+    "analyst": "M. Okafor",
+    "date": "2026-09-11",
+    "team_notes": "Email from the client: 'Our Munich office visit was planned, sorry for the late notice.' Travel confirmed after the fact."
   },
   {
     "id": "SOC-1063",
@@ -33,7 +39,10 @@
     "verdict": "CREATE",
     "client_confirmed": false,
     "justification": "No travel confirmation, and an inbox rule was created right after the sign-in. Escalated for investigation, password reset, and session revocation.",
-    "note": "Note: Escalated. Unconfirmed sign-in from a new country followed by mailbox rule creation. Client asked to reset the password and revoke sessions."
+    "note": "Note: Escalated. Unconfirmed sign-in from a new country followed by mailbox rule creation. Client asked to reset the password and revoke sessions.",
+    "analyst": "J. Lindqvist",
+    "date": "2026-09-18",
+    "team_notes": "Teams, on-call chat: No travel notice anywhere. The inbox rule is the red flag, escalate and get the password reset fast."
   },
   {
     "id": "SOC-1072",
@@ -45,7 +54,10 @@
     "verdict": "CLOSE",
     "client_confirmed": false,
     "justification": "The queries were traced to the telemetry endpoint of the endpoint security agent; the domain belongs to the vendor. A tuning request was filed.",
-    "note": "Note: DNS traffic traced to the security agent telemetry endpoint, vendor domain. Benign, closing."
+    "note": "Note: DNS traffic traced to the security agent telemetry endpoint, vendor domain. Benign, closing.",
+    "analyst": "P. Haddad",
+    "date": "2026-09-25",
+    "team_notes": "Teams: Vendor confirmed the telemetry domain is theirs. Added to the tuning list."
   },
   {
     "id": "SOC-1080",
@@ -57,7 +69,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "The client confirmed the device sits on the isolated guest network with no access to internal resources; the file was a test sample from their own security training.",
-    "note": "Note: Hash match on the isolated guest network, test sample confirmed by the client. No exposure, closing."
+    "note": "Note: Hash match on the isolated guest network, test sample confirmed by the client. No exposure, closing.",
+    "analyst": "R. Novak",
+    "date": "2026-10-02",
+    "team_notes": "Email from the client: 'That device is our training laptop on the guest Wi-Fi, the sample is from our own course.'"
   },
   {
     "id": "SOC-1093",
@@ -69,7 +84,10 @@
     "verdict": "CLOSE",
     "client_confirmed": false,
     "justification": "All attempts failed; MFA and lockout policies held. The source IP was blocked on the client firewall.",
-    "note": "Note: Password spray with no successful logon, source blocked. Nothing out of the ordinary, closing."
+    "note": "Note: Password spray with no successful logon, source blocked. Nothing out of the ordinary, closing.",
+    "analyst": "S. Bergeron",
+    "date": "2026-10-09",
+    "team_notes": "Shift handover: Spray hit the VPN again overnight, zero successes. IP blocked at the firewall."
   },
   {
     "id": "SOC-1105",
@@ -81,7 +99,10 @@
     "verdict": "CLOSE",
     "client_confirmed": false,
     "justification": "The traffic is the update mechanism of the marketing team's approved analytics software.",
-    "note": "Note: Beaconing identified as the update traffic of an approved application. Benign, closing."
+    "note": "Note: Beaconing identified as the update traffic of an approved application. Benign, closing.",
+    "analyst": "M. Okafor",
+    "date": "2026-10-16",
+    "team_notes": "Teams: Marketing confirmed the analytics tool is approved and paid for. The beacon is its update check."
   },
   {
     "id": "SOC-1118",
@@ -93,7 +114,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "The client confirmed a planned maintenance window; the account was created by their IT provider for a migration and removed afterwards.",
-    "note": "Note: Admin account creation confirmed by the client as planned maintenance. Closing."
+    "note": "Note: Admin account creation confirmed by the client as planned maintenance. Closing.",
+    "analyst": "J. Lindqvist",
+    "date": "2026-10-23",
+    "team_notes": "Email from the client: 'Maintenance window approved, the new admin account is our provider, it will be removed Friday.'"
   },
   {
     "id": "SOC-1126",
@@ -105,7 +129,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "The host is the client's vulnerability scanner; the scan matched the scheduled weekly assessment.",
-    "note": "Note: Scan traced to the scheduled vulnerability scanner. Expected activity, closing."
+    "note": "Note: Scan traced to the scheduled vulnerability scanner. Expected activity, closing.",
+    "analyst": "P. Haddad",
+    "date": "2026-10-30",
+    "team_notes": "Teams: The scanner runs every Tuesday night. If it fires outside that window, look again."
   },
   {
     "id": "SOC-1139",
@@ -117,7 +144,10 @@
     "verdict": "CREATE",
     "client_confirmed": false,
     "justification": "Signs of session token reuse from a second location. Escalated; the client disabled the account and revoked sessions.",
-    "note": "Note: Escalated. Token replay indicators found. Client asked to keep the account disabled pending investigation."
+    "note": "Note: Escalated. Token replay indicators found. Client asked to keep the account disabled pending investigation.",
+    "analyst": "R. Novak",
+    "date": "2026-11-06",
+    "team_notes": "Teams, on-call chat: Token replay is real until proven otherwise. The account stayed disabled all weekend."
   },
   {
     "id": "SOC-1151",
@@ -129,7 +159,10 @@
     "verdict": "CLOSE",
     "client_confirmed": false,
     "justification": "The activity matched the monthly patching window; the commands were package updates only. A tuning request was filed for this host and account during patch windows.",
-    "note": "Note: Sudo activity during the patching window, update commands only. Benign, closing."
+    "note": "Note: Sudo activity during the patching window, update commands only. Benign, closing.",
+    "analyst": "S. Bergeron",
+    "date": "2026-11-10",
+    "team_notes": "Shift handover: Patching night on the Linux boxes, sudo noise is expected until 23:00."
   },
   {
     "id": "SOC-1164",
@@ -141,7 +174,10 @@
     "verdict": "CREATE",
     "client_confirmed": false,
     "justification": "Credentials were entered on the fake page. Escalated so the client can reset the password, revoke sessions, and check for mailbox rules.",
-    "note": "Note: Escalated. Credentials entered on a phishing page. Client asked to reset the password and review mailbox rules."
+    "note": "Note: Escalated. Credentials entered on a phishing page. Client asked to reset the password and review mailbox rules.",
+    "analyst": "M. Okafor",
+    "date": "2026-11-14",
+    "team_notes": "Email from the user: 'I clicked and typed my password before I realized.' A fast escalation saved the account."
   },
   {
     "id": "SOC-1177",
@@ -153,7 +189,10 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "The forwarder service had stopped; the client restarted it and the logs resumed. The gap is explained.",
-    "note": "Note: Log gap caused by a stopped forwarder service, restarted by the client, logs flowing again. Closing."
+    "note": "Note: Log gap caused by a stopped forwarder service, restarted by the client, logs flowing again. Closing.",
+    "analyst": "J. Lindqvist",
+    "date": "2026-11-18",
+    "team_notes": "Teams: The forwarder service dies about once a quarter. A restart brings the logs back, the gap is explainable."
   },
   {
     "id": "SOC-1189",
@@ -165,6 +204,9 @@
     "verdict": "CLOSE",
     "client_confirmed": true,
     "justification": "A misconfigured service account on the jump host was retrying with an old password; the client corrected the configuration and the failures stopped.",
-    "note": "Note: Failed RDP logons traced to a misconfigured service account, corrected by the client. Closing."
+    "note": "Note: Failed RDP logons traced to a misconfigured service account, corrected by the client. Closing.",
+    "analyst": "P. Haddad",
+    "date": "2026-11-21",
+    "team_notes": "Shift handover: The service account password was changed on Friday, the jump host kept retrying the old one."
   }
 ]
